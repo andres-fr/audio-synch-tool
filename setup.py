@@ -20,7 +20,7 @@ def setup():
     setuptools.setup(
         name="audio_synch_tool",
         # the version is automatically handled by "bumpversion"
-        version="0.1.0",
+        version="0.2.0",
         author="Andres FR",
         description="A matplotlib interactive gui to align signals with high \
         precision",
