@@ -18,16 +18,16 @@ def setup():
         long_description = f.read()
     #
     setuptools.setup(
-        name="dummypackage-dummyname",
+        name="audio_synch_tool",
         # the version is automatically handled by "bumpversion"
-        version="1.3.0",
-        author="Dummy Name",
-        author_email="dd@dummysolutions.com",
-        description="A dummy package",
+        version="0.1.0",
+        author="Andres FR",
+        description="A matplotlib interactive gui to align signals with high \
+        precision",
         long_description=long_description,
         long_description_content_type="text/markdown",
-        url="https://github.com/andres-fr/python3-template",
-        packages=setuptools.find_packages(exclude=["utest*"]),
+        url="https://github.com/andres-fr/audio-synch-tool",
+        packages=setuptools.find_packages(exclude=["*utest*"]),
         include_package_data=True,
         classifiers=[
             # comprehensive list: https://pypi.org/classifiers/

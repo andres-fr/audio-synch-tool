@@ -5,17 +5,17 @@ env:
   global:
     # test stage config
     - CODECOV_REQUIRED_PERCENT="50.0" # for utest+codecov
-    - MAX_MB_ALLOWED="512" # for mem benchmark
-    - MEM_MEASURE_EVERY_SEC="0.05" # in seconds, measure memory at these intervals
-    - MAX_SEC_PER_LOOP="5.0" # for time benchmark
+    # - MAX_MB_ALLOWED="512" # for mem benchmark
+    # - MEM_MEASURE_EVERY_SEC="0.05" # in seconds, measure memory at these intervals
+    # - MAX_SEC_PER_LOOP="5.0" # for time benchmark
     # build stage config
-    - DOC_PACKAGE_NAME="dummypackage"
-    - DOC_AUTHOR_NAME="Dummy Dumson"
+    - DOC_PACKAGE_NAME="audio_synch_tool"
+    - DOC_AUTHOR_NAME="Andres FR"
     - BUMPVERSION_FILE=".bumpversion.cfg"
     # deploy stage config
     - PYPI_USERNAME="fr_andres"
     - GH_RELEASES_ASSET_PATH="dist/*" # all matches for this path will be included into the GitHub release
-    - REPO_NAME="andres-fr/python3-template" # releases will only work under this name
+    - REPO_NAME="andres-fr/audio-synch-tool" # releases will only work under this name
     - CHANGELOG_PATH="CHANGELOG.md" # relative to repo root
 
 # this line routes the builds to Ubuntu 16.04
@@ -63,14 +63,14 @@ jobs:
     - stage: test
       name: "Check Code Style"
       script: python -m flake8
-    - script: python -m unittest utest/tautology.py
+    - script: python -m unittest audio_synch_tool_utest/tautology.py
       name: "Tautological Test"
     - script: python ci_scripts/utest_with_coverage.py -n "$DOC_PACKAGE_NAME" -p "$CODECOV_REQUIRED_PERCENT"
       name: "Unit Testing and Code Coverage"
-    - script: python ci_scripts/memory_benchmark.py -m "$MAX_MB_ALLOWED" -i "$MEM_MEASURE_EVERY_SEC"
-      name: "Memory Benchmarking"
-    - script: python ci_scripts/runtime_benchmark.py -m "$MAX_SEC_PER_LOOP"
-      name: "Runtime Benchmarking"
+    # - script: python ci_scripts/memory_benchmark.py -m "$MAX_MB_ALLOWED" -i "$MEM_MEASURE_EVERY_SEC"
+    #   name: "Memory Benchmarking"
+    # - script: python ci_scripts/runtime_benchmark.py -m "$MAX_SEC_PER_LOOP"
+    #   name: "Runtime Benchmarking"
 
     # If all tests pass, go on to the build stage
     - stage: build
@@ -101,7 +101,7 @@ jobs:
           skip_cleanup: true
           user: "$PYPI_USERNAME"
           password:
-            secure: "qpDiwstuH9zjNAqeLUmn9s+AOny+eKYGBAWP3qrWwRi2gx+w0KQwk+uz+E/FgJp6lkPzAeV+UqMCz/y03EDK+dRdkbz7C5RrQFechHZM+Y1adPXfrIQvF3YdCzCRaLUF7V0/3gED6yGvFEquZLwxHSyM0GCUc8LyJnSuPDocFe7E2jiPJ+R8HFBD6dBqz4UFnriCiLKFj4//MJLdXu1Ad0SITW8XOrpHO/SrvWJ5PT2ilRcUPbpENqxSryG570CNUYyEE71jfxjOsPYAINZmiNnDCkYPaRXyCnPsNOgSwvqGLMr8cmUCjkhhfg/FGmztWQdON/cbdxGz38JcrynFeg1x2pCJ3Nwf4dIPrr3X5EFPfng0eJvVMLI8d6ne6dZvdRgSelevP09l4+6cF6gI12/OKxhn6WmGaADcWXnQQ6+a61n0rsObZadcGCR8ZsPw9QUJx1CHIYmBuaEAtMVgE4tDuXundBQa8mAbV4cgfDyXQ+Y0/zm52eVGAQVvwImWPvwEq5KnhsOoHgaR9nKtnFyENRnbFVX002QNmprahjPRi+yL2j/LIJg/7h2kmWolbuX0jkhpvgDmg5Sri2h7aqrYubM4Ko/GnjNnbZX36ePu453K97tHxl7KuFXX6TFzYwM2DRtD+/RY39gYqI49Mt9CYrUaJMUqZcPNn82ypQQ="
+            secure: "aH6EytG8v8XM5a9gDAGbeyGFBHQkUXYn5kAfN+46UOKCxp9T8N0tJfMcc7gPp425HdHgjF4SRF2gv273Yfn4x5gNV6gq6doAd5eCnFVeZvjLTQcJgytWhEuQ/DvQV4pTcxCMOVDBj5+jR6bz6ShLUP5XJ50Oycyj0UUb7cFGBArPPMiHEQEA973mKGtJm3SPKXN/763j7GULtsv2sP7v6KsUfaXiRv8IjT0jv4Gx8i//usOWB6HV8bpQ39ax2XMm7cPZ8bGorL/SIIHfz6YI0hYkLQN3fiaBLAp35dO1kFxKE4Ger3BKU/sSv6PdgL2UCDJKowjjFqVA1b01JVyInFitP/GVSHluTH3T5QJ6h5wXtYHlcCbQcDZ3wln1ExHLberVWGjh7GmxfVriMY2Ju81BnqhPUIlYExZ3M6qvu7N0619DDGilBcLH08/D+S5VJrBzFsj28h6oigrTSde49arkr+1tKliCKOb3MbmIIEY2ExBiLN6i5xM4pOMgu8F+njs4MAckbDcRDRgPxBdf6fqeFK5shd/AfKSVcoMbqucLS7w/RiVXEeQ+/e0+2Kznqnqayus23jmHPf4bPGU70R3P3X82viT4RR6YR3EEGtkciQ2U1LrRY5XIoKC5qL6CBpHefrarcAPrDPK6k+sR2uTPOSmgzVot8TxUprO0PNE="
           on:
             tags: true
             # branch: master # already filtered out in the "branches" section

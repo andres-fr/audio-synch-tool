@@ -13,7 +13,7 @@ import coverage
 import argparse
 #
 import environment  # noqa: F401
-import utest
+import audio_synch_tool_utest
 
 
 if __name__ == "__main__":
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # perform unit tests, wraped with the coverage instance
     c.start()
-    test_results = utest.run_all_tests()
+    test_results = audio_synch_tool_utest.run_all_tests()
     c.stop()
 
     # at this point c.save() and c.xml_report(outfile=etc) would generate

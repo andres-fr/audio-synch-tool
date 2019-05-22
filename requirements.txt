@@ -8,3 +8,7 @@ bump2version
 setuptools
 wheel
 twine
+#
+matplotlib
+lxml  # requires install libiconv?
+pysoundfile
