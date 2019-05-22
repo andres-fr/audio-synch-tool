@@ -13,4 +13,11 @@ Started dev
 
 ## TODO:
 
-dev
+
+### high priority
+
+* get audio plotter in shape
+
+
+### low priority
+* replace all np dependencies with torch
