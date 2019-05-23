@@ -16,7 +16,12 @@ Started dev
 
 ### high priority
 
-* get audio plotter in shape
+* multi plotter debug: ticks with different samplerates dont work?
+* zooming doesnt have resolution when num_plots > 1
+
+* create multi-multiplotter, which given lists of lists plots multiple lines per axis.
+
+* mvn: split vectors into per-sensor info, and plot in multi-multiplotter
 
 
 ### low priority
