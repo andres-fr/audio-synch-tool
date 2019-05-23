@@ -10,7 +10,7 @@ import soundfile as sf
 import torch
 
 # from .utils import Timestamp
-from .plotters import DownsampledPlotter1D, MultipleDownsampledPlotter1D
+from .plotters import MultipleDownsampledPlotter1D
 
 
 __author__ = "Andres FR"
@@ -45,10 +45,10 @@ class WavMvnStruct(object):
 
 # NUM_TRACKS = 8
 # NUM_SHARED = 3
-MAX_SAMPLES_PLOTTED = 10000
+MAX_SAMPLES_PLOTTED = 1e3
 MVN_SAMPLERATE = 240
 
-wav_path = '/home/a9fb1e/SAG_D1_10_M-Jem-2.wav'
+wav_path = '/home/andres_py3/SAG_D1_10_M-Jem-2.wav'
 
 arr, audio_samplerate = sf.read(wav_path)
 # tnsr = torch.from_numpy(arr)
@@ -65,28 +65,30 @@ arr, audio_samplerate = sf.read(wav_path)
 
 
 
+## WHAT IS HAPPENING IS: THE OTHERS GET RESIZED AUTOMATICALLY BECAUSE XAXIS
+# IS TIED, BUT THE DATA IS STILL "LOWSAMPLED". SOLUTION: EVERY CHANGE IN THE
+# X AXIS MUST TRIGGER THE CALLBACK FROM ALL DEPENDENT AXES.
 
-# p = DownsampledPlotter1D(arr, MAX_SAMPLES_PLOTTED, samplerate)
-# fig = p.make_fig()
-# plt.show(fig)
-
-
-
+## FOR THAT, THE PLOTTER CLASS CAN STORE A LIST OF LISTS OF FUNCTOR
 
 
-N = 2
-arrays = [arr if i == 0 else torch.rand(100000).numpy()
+
+
+N = 5
+
+arrays = [[arr, arr[::-1]] if i == 0 else torch.rand(3, 100000).numpy()
           for i in range(N)]
-samplerates = [audio_samplerate if i == 0 else MVN_SAMPLERATE
-               for i in range(N)]
-# # samplerates = [None for i in range(N)]
+samplerates = [audio_samplerate if i == 0 else MVN_SAMPLERATE for i in range(N)]
+
+# samplerates = [200 if i == 0 else 100 for i in range(N)]
+# samplerates = [None for i in range(N)]
 # samplerates = [1000 if i == 0 else 100
 #                for i in range(N)]
 
 
 tied_plots = [False if i == 0 else True for i in range(N)]
 # tied_plots = [i%2 == 1 for i in range(N)]
-
+# tied_plots = [False for i in range(N)]
 
 p = MultipleDownsampledPlotter1D(arrays, samplerates, MAX_SAMPLES_PLOTTED,
                                  tied_plots)
@@ -96,4 +98,4 @@ fig = p.make_fig(tick_rot_deg=20)
 #     fn = ax.xaxis.get_major_formatter().func
 #     print(">>>>>>>>>>", fn(10000, None))
 
-plt.show(fig)
+plt.show()

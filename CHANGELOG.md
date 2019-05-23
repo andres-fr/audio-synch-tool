@@ -16,8 +16,8 @@ Started dev
 
 ### high priority
 
-* multi plotter debug: ticks with different samplerates dont work?
-* zooming doesnt have resolution when num_plots > 1
+* multi plotter debug: ticks with different samplerates dont work? DONE
+* zooming doesnt have resolution when num_plots > 1 DONE
 
 * create multi-multiplotter, which given lists of lists plots multiple lines per axis.
 
