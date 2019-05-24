@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool package &mdash; audio_synch_tool 0.4.0 documentation</title>
+  <title>audio_synch_tool package &mdash; audio_synch_tool 0.5.0 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.4.0
+                0.5.0
               </div>
             
           
@@ -182,54 +182,60 @@
 XSENS MVN format into our Python setup.</p>
 <p>The following section introduces the contents of the imported MVN file and the
 way they can be accessed from Python:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd</span>
-<span class="n">MVN_SCHEMA_PATH</span> <span class="o">=</span> <span class="s2">&quot;xxx&quot;</span>
-<span class="n">mvn_path</span> <span class="o">=</span> <span class="s2">&quot;yyy&quot;</span>
-<span class="n">mmvn</span> <span class="o">=</span> <span class="n">Mvn</span><span class="p">(</span><span class="n">mvn_path</span><span class="p">,</span> <span class="n">MVN_SCHEMA_PATH</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd
+MVN_SCHEMA_PATH = &quot;xxx&quot;
+mvn_path = &quot;yyy&quot;
+mmvn = Mvn(mvn_path, MVN_SCHEMA_PATH)
 
-<span class="c1"># These elements contain some small metadata:</span>
-<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">attrib</span>
-<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">comment</span><span class="o">.</span><span class="n">attrib</span>
-<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">securityCode</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>
-<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">attrib</span>
+# These elements contain some small metadata:
+mmvn.mvn.attrib
+mmvn.mvn.comment.attrib
+mmvn.mvn.securityCode.attrib[&quot;code&quot;]
+mmvn.mvn.subject.attrib
 
-<span class="c1"># subject.segments contain 3D pos_b labels:</span>
-<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
-    <span class="n">ch</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">attrib</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">()]</span>
+# subject.segments contain 3D pos_b labels:
+for ch in mmvn.mvn.subject.segments.iterchildren():
+    ch.attrib, [p.attrib for p in ch.points.iterchildren()]
 
-<span class="c1"># sensors is basically a list of names</span>
-<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
-    <span class="n">s</span><span class="o">.</span><span class="n">attrib</span>
+# Segments can look as follows: ``[&#39;Pelvis&#39;, &#39;L5&#39;, &#39;L3&#39;, &#39;T12&#39;, &#39;T8&#39;, &#39;Neck&#39;,
+&#39;Head&#39;, &#39;RightShoulder&#39;, &#39;RightUpperArm&#39;, &#39;RightForeArm&#39;, &#39;RightHand&#39;,
+&#39;LeftShoulder&#39;, &#39;LeftUpperArm&#39;, &#39;LeftForeArm&#39;, &#39;LeftHand&#39;, &#39;RightUpperLeg&#39;,
+&#39;RightLowerLeg&#39;, &#39;RightFoot&#39;, &#39;RightToe&#39;, &#39;LeftUpperLeg&#39;, &#39;LeftLowerLeg&#39;,
+&#39;LeftFoot&#39;, &#39;LeftToe&#39;]``
 
-<span class="c1">#  Joints is a list that connects segment points:</span>
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
-    <span class="n">j</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span> <span class="n">j</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+# sensors is basically a list of names
+for s in mmvn.mvn.subject.sensors.iterchildren():
+    s.attrib
 
-<span class="c1"># miscellaneous:</span>
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">ergonomicJointAngles</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
-    <span class="n">j</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="n">j</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+#  Joints is a list that connects segment points:
+for j in mmvn.mvn.subject.joints.iterchildren():
+    j.attrib[&quot;label&quot;], j.getchildren()
 
-<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">footContactDefinition</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+# miscellaneous:
+for j in mmvn.mvn.subject.ergonomicJointAngles.iterchildren():
+    j.attrib, j.getchildren()
 
-<span class="c1"># The bulk of the data is in the frames.</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;frames_metadata:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;first_frame_type:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">config_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;normal_frames_type:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num_normal_frames:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mmvn</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">))</span>
+for f in mmvn.mvn.subject.footContactDefinition.iterchildren():
+    f.attrib, f.getchildren()
 
-<span class="c1"># Metadata looks like this:</span>
-<span class="p">{</span><span class="s1">&#39;segmentCount&#39;</span><span class="p">:</span> <span class="s1">&#39;23&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorCount&#39;</span><span class="p">:</span> <span class="s1">&#39;17&#39;</span><span class="p">,</span> <span class="s1">&#39;jointCount&#39;</span><span class="p">:</span> <span class="s1">&#39;22&#39;</span><span class="p">}</span>
+# The bulk of the data is in the frames.
+print(&quot;frames_metadata:&quot;, mmvn.frames_metadata)
+print(&quot;first_frame_type:&quot;, mmvn.config_frames[0][&quot;type&quot;])
+print(&quot;normal_frames_type:&quot;, mmvn.normal_frames[0][&quot;type&quot;])
+print(&quot;num_normal_frames:&quot;, len(mmvn.normal_frames))
 
-<span class="c1"># config frames have the following fields:</span>
-<span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;tc&#39;</span><span class="p">,</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+# Metadata looks like this:
+{&#39;segmentCount&#39;: &#39;23&#39;, &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}
 
-<span class="c1"># normal frames have the following fields:</span>
-<span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;acceleration&#39;</span><span class="p">,</span>
- <span class="s1">&#39;angularVelocity&#39;</span><span class="p">,</span> <span class="s1">&#39;angularAcceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;footContacts&#39;</span><span class="p">,</span>
- <span class="s1">&#39;sensorFreeAcceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorMagneticField&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorOrientation&#39;</span><span class="p">,</span>
- <span class="s1">&#39;jointAngle&#39;</span><span class="p">,</span> <span class="s1">&#39;jointAngleXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;jointAngleErgo&#39;</span><span class="p">,</span> <span class="s1">&#39;centerOfMass&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
- <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;tc&#39;</span><span class="p">,</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+# config frames have the following fields:
+[&#39;orientation&#39;, &#39;position&#39;, &#39;time&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]
+
+# normal frames have the following fields:
+[&#39;orientation&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;acceleration&#39;,
+ &#39;angularVelocity&#39;, &#39;angularAcceleration&#39;, &#39;footContacts&#39;,
+ &#39;sensorFreeAcceleration&#39;, &#39;sensorMagneticField&#39;, &#39;sensorOrientation&#39;,
+ &#39;jointAngle&#39;, &#39;jointAngleXZY&#39;, &#39;jointAngleErgo&#39;, &#39;centerOfMass&#39;, &#39;time&#39;,
+ &#39;index&#39;, &#39;tc&#39;, &#39;ms&#39;, &#39;type&#39;]
 </pre></div>
 </div>
 <p>The following fields contain metadata about the frame:</p>
@@ -286,6 +292,42 @@ is given by the hardware.</td>
 <p>This class imports and adapts an XML file (expected to be in MVN format)
 to a Python-friendly representation. See this module’s docstring for usage
 examples and more information.</p>
+<dl class="method">
+<dt id="audio_synch_tool.mvn.Mvn.get_normalframe_magnitudes">
+<code class="descname">get_normalframe_magnitudes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.get_normalframe_magnitudes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.get_normalframe_magnitudes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of the magnitude names in each of the
+<code class="docutils literal notranslate"><span class="pre">self.normal_frames</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="audio_synch_tool.mvn.Mvn.get_normalframe_sequences">
+<code class="descname">get_normalframe_sequences</code><span class="sig-paren">(</span><em>device='cpu'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.get_normalframe_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.get_normalframe_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>magnitude</strong> (<em>str</em>) – One of <code class="docutils literal notranslate"><span class="pre">self.get_segments()</span></code></li>
+<li><strong>magnitude</strong> – One of <code class="docutils literal notranslate"><span class="pre">self.get_normalframe_magnitudes()</span></code></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a torch tensor of shape <code class="docutils literal notranslate"><span class="pre">(num_normalframes,</span> <span class="pre">num_channels)</span></code>
+where the number of channels is e.g. 1 for scalar magnitudes, 3 for
+3D vectors…</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.get_segments">
 <code class="descname">get_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.get_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.get_segments" title="Permalink to this definition">¶</a></dt>

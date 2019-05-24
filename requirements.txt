@@ -12,3 +12,5 @@ twine
 matplotlib
 lxml  # requires install libiconv?
 pysoundfile
+#
+torch

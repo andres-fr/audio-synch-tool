@@ -24,6 +24,12 @@ way they can be accessed from Python::
   for ch in mmvn.mvn.subject.segments.iterchildren():
       ch.attrib, [p.attrib for p in ch.points.iterchildren()]
 
+  # Segments can look as follows: ``['Pelvis', 'L5', 'L3', 'T12', 'T8', 'Neck',
+  'Head', 'RightShoulder', 'RightUpperArm', 'RightForeArm', 'RightHand',
+  'LeftShoulder', 'LeftUpperArm', 'LeftForeArm', 'LeftHand', 'RightUpperLeg',
+  'RightLowerLeg', 'RightFoot', 'RightToe', 'LeftUpperLeg', 'LeftLowerLeg',
+  'LeftFoot', 'LeftToe']``
+
   # sensors is basically a list of names
   for s in mmvn.mvn.subject.sensors.iterchildren():
       s.attrib
@@ -82,9 +88,11 @@ The following fields contain metadata about the frame:
 :centerOfMass: ``3``
 """
 
+
 __author__ = "Andres FR"
 
 
+import torch
 from lxml import etree, objectify  # https://lxml.de/validation.html
 
 
@@ -124,6 +132,9 @@ class Mvn(object):
         self.frames_metadata = f_meta
         self.config_frames = config_f
         self.normal_frames = normal_f
+        #
+        assert (int(self.frames_metadata["segmentCount"]) ==
+                len(self.get_segments())), "Inconsistent segmentCount?"
 
     def _extract_mvn_frames(self, mvn):
         """
@@ -179,3 +190,76 @@ class Mvn(object):
         assert all([s is not None for s in segments]),\
             "Segments aren't ordered by id?"
         return segments
+
+    def get_normalframe_magnitudes(self):
+        """
+        :returns: A list of the magnitude names in each of the
+          ``self.normal_frames``
+        """
+        result = list(self.normal_frames[0].keys())
+        for i, f in enumerate(self.normal_frames[1:]):
+            assert list(f.keys()) == result, \
+                "Inconsistent magnitudes in frame %d?" % i
+        return result
+
+    def get_normalframe_sequences(self, device="cpu"):
+        """
+        :param str magnitude: One of ``self.get_segments()``
+        :param str magnitude: One of ``self.get_normalframe_magnitudes()``
+        :returns: a torch tensor of shape ``(num_normalframes, num_channels)``
+          where the number of channels is e.g. 1 for scalar magnitudes, 3 for
+          3D vectors...
+        """
+        # prepare variables and resulting datastructure
+        all_magnitudes = self.get_normalframe_magnitudes()
+        n_segments = int(self.frames_metadata["segmentCount"])
+        n_sensors = int(self.frames_metadata["sensorCount"])
+        n_joints = int(self.frames_metadata["jointCount"])
+        result = {m: [] for m in all_magnitudes}
+        # loop through all frames collecting the per-magnitude sequences
+        for i, f in enumerate(self.normal_frames):
+            assert i == f["index"], \
+                "MVN sequence skipped one frame at %s?" % f["index"]
+
+            for mag in f.keys():
+                # add string entries:
+                if mag in {"tc", "type"}:
+                    entry = f[mag]
+                # add as-is int scalars:
+                elif mag in {"time", "index", "ms", "footContacts"}:
+                    entry = torch.LongTensor([f[mag]])
+                # add as-is float vectors:
+                elif mag in {"centerOfMass", "jointAngleErgo"}:
+                    entry = torch.Tensor([f[mag]])
+                # add 3D magment vectors
+                elif mag in {"position", "velocity", "acceleration",
+                             "angularVelocity", "angularAcceleration"}:
+                    entry = torch.Tensor(f[mag]).view(n_segments, 3)
+                # add 4D magment vectors
+                elif mag == "orientation":
+                    entry = torch.Tensor(f[mag]).view(n_segments, 4)
+                # add 3D sensor vectors
+                elif mag in {"sensorFreeAcceleration",
+                             "sensorMagneticField"}:
+                    entry = torch.Tensor(f[mag]).view(n_sensors, 3)
+                # add 4D magment vectors
+                elif mag == "sensorOrientation":
+                    entry = torch.Tensor(f[mag]).view(n_sensors, 4)
+                # add 3D joint vectors:
+                elif mag in {"jointAngle", "jointAngleXZY"}:
+                    entry = torch.Tensor(f[mag]).view(n_joints, 3)
+                # this should never happen
+                else:
+                    comp = mag + " should be in " + str(all_magnitudes)
+                    raise Exception("Inconsistent frame magnitude? %s" % comp)
+                result[mag].append(entry)
+        # once the loop is done, convert sequences to tensors and we are done:
+
+        for k, v in result.items():
+            try:
+                result[k] = torch.stack(v).to(device)
+            except TypeError:
+                # This will happen for the "string" entries, which cannot be
+                # converted to tensors. Just leave them unchanged
+                pass
+        return result

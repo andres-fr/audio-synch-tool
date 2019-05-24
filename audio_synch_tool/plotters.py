@@ -14,11 +14,11 @@
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-# import numpy as np
-
 from .utils import DownsamplableFunction
 from .utils import SampleToTimestampFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
+
+
 __author__ = "Andres FR"
 
 

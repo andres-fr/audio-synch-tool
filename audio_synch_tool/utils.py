@@ -5,20 +5,9 @@
 """
 
 
-# os+plt imports right after __future__
-# import os
-# import matplotlib as mpl
-# if os.environ.get('DISPLAY', '') == '':
-#     print('no display found. Using non-interactive Agg backend')
-#     mpl.use('Agg')
-# import matplotlib.pyplot as plt
-# from matplotlib import gridspec
-# import soundfile as sf
-# import torch
-# import numpy as np
-
 import datetime
-import numpy as np
+import torch
+
 
 __author__ = "Andres FR"
 
@@ -171,7 +160,7 @@ class DownsamplableFunction(object):
         self._len = len(arr)
         assert self._len > 0, "Empty array?"
         self.y = arr
-        self.x = np.arange(self._len)
+        self.x = torch.arange(self._len).numpy()
         self.max_datapoints = max_datapoints
 
     def __len__(self):

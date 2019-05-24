@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.utils &mdash; audio_synch_tool 0.4.0 documentation</title>
+  <title>audio_synch_tool.utils &mdash; audio_synch_tool 0.5.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.4.0
+                0.5.0
               </div>
             
           
@@ -153,20 +153,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="c1"># os+plt imports right after __future__</span>
-<span class="c1"># import os</span>
-<span class="c1"># import matplotlib as mpl</span>
-<span class="c1"># if os.environ.get(&#39;DISPLAY&#39;, &#39;&#39;) == &#39;&#39;:</span>
-<span class="c1">#     print(&#39;no display found. Using non-interactive Agg backend&#39;)</span>
-<span class="c1">#     mpl.use(&#39;Agg&#39;)</span>
-<span class="c1"># import matplotlib.pyplot as plt</span>
-<span class="c1"># from matplotlib import gridspec</span>
-<span class="c1"># import soundfile as sf</span>
-<span class="c1"># import torch</span>
-<span class="c1"># import numpy as np</span>
-
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
 
@@ -319,7 +308,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Empty array?&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">arr</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_len</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_len</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_datapoints</span> <span class="o">=</span> <span class="n">max_datapoints</span>
 
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
