@@ -111,18 +111,22 @@ class SampleToTimestampFormatter(object):
     showing the corresponding elapsed time since sample 0, asuming the given
     samplerate.
     Usage example::
-      ax.xaxis.set_major_formatter(plt.FuncFormatter(fn))
+
+      ax.xaxis.set_major_formatter(plt.FuncFormatter(
+                                   SampleToTimestampFormatter(sr)))
     """
-    def __init__(self, samplerate, num_decimals=3):
+    def __init__(self, samplerate, num_decimals=3, show_idx=True):
         """
         :param number samplerate: A number so that seconds = val / samplerate
         :param int num_decimals: An integer between 0 and 6.
+        :param bool show_idx: If true, the sample index will be also shown.
         :returns: A string in the form "{X days} h:m:s.ms"
         """
         assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
         self.samplerate = samplerate
         self.num_decimals = num_decimals
         self._n_remove = 6 - num_decimals
+        self.show_idx = show_idx
 
     def __call__(self, val, pos):
         """
@@ -134,6 +138,10 @@ class SampleToTimestampFormatter(object):
         ts_str = str(ts)
         if ts.microsecs > 0:
             ts_str = ts_str[: - self._n_remove]
+        if self.show_idx:
+            if val.is_integer():
+                val = int(val)
+            ts_str = str(val) + " (" + ts_str + ")"
         return ts_str
 
 

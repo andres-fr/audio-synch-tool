@@ -57,8 +57,8 @@ class MultipleDownsampledPlotter1D(object):
     """
 
     FIG_ASPECT_RATIO = (10, 8)
-    FIG_MARGINS = {"top": 0.8, "bottom": 0.05, "left": 0.05, "right": 0.95,
-                   "hspace": 0.5, "wspace": 0.5}
+    FIG_MARGINS = {"top": 0.95, "bottom": 0.1, "left": 0.1, "right": 0.95,
+                   "hspace": 0.5, "wspace": 0.05}
 
 
     def __init__(self, arrays, samplerates=None, max_datapoints=10000,
@@ -98,8 +98,8 @@ class MultipleDownsampledPlotter1D(object):
         self.non_shared_idxs = [i for i in range(self.N)
                                 if i not in self.shared_idxs]
 
-    def make_fig(self, num_xticks=10, num_yticks=10, tick_fontsize=7,
-                 tick_rot_deg=30, num_decimals=3):
+    def make_fig(self, num_xticks=15, num_yticks=10, tick_fontsize=7,
+                 tick_rot_deg=15, num_decimals=3, show_idx=True):
         """
         :returns: A matplotlib Figure containing the array given at
           construction. The interactive plot of the figure will react
@@ -144,7 +144,7 @@ class MultipleDownsampledPlotter1D(object):
             ax.xaxis.grid(True)
 
             # number of x and y ticks
-            ax.locator_params(axis="x", nbins=num_xticks)
+            ax.locator_params(axis="x", nbins=num_xticks, integer=True)
             ax.locator_params(axis="y", nbins=num_yticks)
 
             # alignment, font and rotation of labels
@@ -155,154 +155,16 @@ class MultipleDownsampledPlotter1D(object):
 
             # optionally adapt labels to given sample rates
             if sr is not None:
-                f = SampleToTimestampFormatter(sr, num_decimals)
+                f = SampleToTimestampFormatter(sr, num_decimals, show_idx)
                 ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
 
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(0, length)
 
-        # # now add downsampling callback every time the x limits change.
-        # # specifically, downsampling has to be recomputed for all plots
-        # # that share the x axis, if one is changed.
-        # for ax, lines, arrs, length in zip(axes, line_lists, self.arrays,
-        #                                    self.arr_maxlengths):
-        #     ax.callbacks.connect('xlim_changed',
-        #                          XlimCallbackFunctor(ax, lines, arrs))
-        #     ax.set_xlim(0, length)
-
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
 
 
-
-
-# class MultipleDownsampledPlotter1D(object):
-#     """
-#     This class generates a matplotlib figure that plots several 1-dimensional
-#     arrays. Since some arrays can be quite long, it features a built-in
-#     downsampling mechanism that plots a (configurable) number of points
-#     at most. The downsampling mechanism is based on this code:
-
-#     https://matplotlib.org/3.1.0/gallery/event_handling/resample.html
-
-#     .. note::
-
-#       The downsampling mechanism only affects the display, not the data,
-#       and is refreshed every time the user changes the perspective.
-#       If the user zooms close enough the data will be displayed in its
-#       original form. Therefore downsampling helps to provide a quicker
-#       interaction when scrolling large files, while allowing for
-#       sample-precise inspection.
-#     """
-
-#     FIG_ASPECT_RATIO = (10, 8)
-#     FIG_MARGINS = {"top": 0.8, "bottom": 0.05, "left": 0.05, "right": 0.95,
-#                    "hspace": 0.5, "wspace": 0.5}
-
-
-#     def __init__(self, arrays, samplerates=None, max_datapoints=10000,
-#                  shared_plots=None):
-#         """
-#         :param list arrays: a list of N 1-dimensional arrays
-#         :param list samplerates: If not None, a list of N positive numbers (or
-#           ``None`` entries), each one corresponding to the nth given array.
-#           If an entry is ``None``, the x-axis will show sample index. Otherwise
-#           the sample index will be converted to a timestamp. If the whole
-#           argument is ``None``, all axes will show sample index.
-#         :param int max_datapoints: Expected to be a positive integer,
-#           the number of plotted datapoints that each plot will (approximately)
-#           have.
-#         :param list shared_plots: If not None, a list of N boolean values, each
-#           one corresponding to a given array. All arrays with True value will
-#           share the same x axis, i.e. when the user scrolls or zooms across
-#           one of them, the rest will change the same way. If None, all will be
-#           treated as False, i.e. no x axis will be shared.
-#         """
-#         #
-#         self.N = len(arrays)
-#         assert self.N >= 1, "empty array list?"
-#         for arr in arrays:
-#             assert len(arr.shape) == 1, "1D array expected!"
-#         assert max_datapoints > 0, "positive max_datapoints expected!"
-#         if samplerates is not None:
-#             assert len(samplerates) == len(arrays),\
-#                 "Number of samplerates must equal number of arrays!"
-#             for sr in samplerates:
-#                 if sr is not None:
-#                     assert sr > 0, "all samplerates must be positive!"
-#         if shared_plots is not None:
-#             assert len(shared_plots) == len(arrays),\
-#                 "Number of shared_plots must equal number of arrays!"
-#         #
-
-#         self.arrays = [DownsamplableFunction(arr, max_datapoints)
-#                        for arr in arrays]
-#         # self.arrays = arrays
-#         # self.aranges = [np.arange(len(arr)) for arr in arrays]
-#         # self.max_datapoints = max_datapoints
-#         self.samplerates = ([None for _ in range(self.N)]
-#                             if samplerates is None else samplerates)
-#         self.shared_plots = ([False for _ in range(self.N)]
-#                             if shared_plots is None else shared_plots)
-
-#         self.shared_idxs = [idx for idx, b in enumerate(self.shared_plots)
-#                             if b]
-#         self.non_shared_idxs = [i for i in range(self.N)
-#                                 if i not in self.shared_idxs]
-
-#     def make_fig(self, num_xticks=10, num_yticks=10, tick_fontsize=7,
-#                  tick_rot_deg=30, num_decimals=3):
-#         """
-#         :returns: A matplotlib Figure containing the array given at
-#           construction. The interactive plot of the figure will react
-#           to the user's zooming by showing approximately
-#           ``self.max_datapoints`` number of samples.
-#         """
-#         # define and configure plt figure
-#         fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
-#         gs = list(gridspec.GridSpec(self.N, 1))
-#         # first create non-shared axes
-#         axes = [plt.subplot(gs[i]) for i in self.non_shared_idxs]
-
-#         # then create the first shared, the rest with share with the first
-#         if self.shared_idxs:
-#             shared_axes = [plt.subplot(gs[self.shared_idxs[0]])]
-#             for idx in self.shared_idxs[1:]:
-#                 shared_axes.insert(idx, plt.subplot(gs[idx],
-#                                                     sharex=shared_axes[0]))
-#             for idx, ax in zip(self.shared_idxs, shared_axes):
-#                 axes.insert(idx, ax)
-
-#         # plots
-#         lines = [ax.plot(arr.x, arr.y, "-")[0]
-#                  for arr, ax in zip(self.arrays, axes)]
-
-#         # configure axes ticks and labels
-#         for ax, line, arr, sr in zip(axes, lines, self.arrays,
-#                                      self.samplerates):
-#             # set vertical grid
-#             ax.xaxis.grid(True)
-
-#             # number of x and y ticks
-#             ax.locator_params(axis="x", nbins=num_xticks)
-#             ax.locator_params(axis="y", nbins=num_yticks)
-
-#             # alignment, font and rotation
-#             plt.setp(ax.xaxis.get_majorticklabels(), rotation=tick_rot_deg,
-#                      fontsize=tick_fontsize, family="DejaVu Sans", ha="right")
-#             plt.setp(ax.yaxis.get_majorticklabels(),
-#                      fontsize=tick_fontsize, family="DejaVu Sans")
-#             ax.callbacks.connect('xlim_changed',
-#                                  DownsamplingCallbackFunctor(ax, line, arr))
-#             ax.set_xlim(0, len(arr))
-
-#             # finally adapt labels to given sample rates
-#             if sr is not None:
-#                 f = SampleToTimestampFormatter(sr, num_decimals)
-#                 ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
-#         #
-#         fig.subplots_adjust(**self.FIG_MARGINS)
-#         return fig
 
 
 

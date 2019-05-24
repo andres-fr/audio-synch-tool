@@ -19,7 +19,7 @@ Started dev
 * multi plotter debug: ticks with different samplerates dont work? DONE
 * zooming doesnt have resolution when num_plots > 1 DONE
 
-* create multi-multiplotter, which given lists of lists plots multiple lines per axis.
+* create multi-multiplotter, which given lists of lists plots multiple lines per axis. DONE
 
 * mvn: split vectors into per-sensor info, and plot in multi-multiplotter
 
