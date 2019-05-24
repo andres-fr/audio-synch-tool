@@ -1,0 +1,457 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>audio_synch_tool.plotters &mdash; audio_synch_tool 0.4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> audio_synch_tool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_synch_tool.html">audio_synch_tool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">audio_synch_tool</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>audio_synch_tool.plotters</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for audio_synch_tool.plotters</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># os+plt imports right after __future__</span>
+<span class="c1"># import os</span>
+<span class="c1"># import matplotlib as mpl</span>
+<span class="c1"># if os.environ.get(&#39;DISPLAY&#39;, &#39;&#39;) == &#39;&#39;:</span>
+<span class="c1">#     print(&#39;no display found. Using non-interactive Agg backend&#39;)</span>
+<span class="c1">#     mpl.use(&#39;Agg&#39;)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">gridspec</span>
+
+<span class="c1"># import numpy as np</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">DownsamplableFunction</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">SampleToTimestampFormatter</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">XlimCallbackFunctor</span><span class="p">,</span> <span class="n">SharedXlimCallbackFunctor</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## GLOBALS</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## PLOTTER CLASSES</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="MultipleDownsampledPlotter1D"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.plotters.MultipleDownsampledPlotter1D">[docs]</a><span class="k">class</span> <span class="nc">MultipleDownsampledPlotter1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class generates a matplotlib figure that plots several 1-dimensional</span>
+<span class="sd">    arrays. Since some arrays can be quite long, it features a built-in</span>
+<span class="sd">    downsampling mechanism that plots a (configurable) number of points</span>
+<span class="sd">    at most. The downsampling mechanism is based on this code:</span>
+
+<span class="sd">    https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">      The downsampling mechanism only affects the display, not the data,</span>
+<span class="sd">      and is refreshed every time the user changes the perspective.</span>
+<span class="sd">      If the user zooms close enough the data will be displayed in its</span>
+<span class="sd">      original form. Therefore downsampling helps to provide a quicker</span>
+<span class="sd">      interaction when scrolling large files, while allowing for</span>
+<span class="sd">      sample-precise inspection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">FIG_ASPECT_RATIO</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">FIG_MARGINS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;top&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s2">&quot;bottom&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+                   <span class="s2">&quot;hspace&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;wspace&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arrays</span><span class="p">,</span> <span class="n">samplerates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_datapoints</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                 <span class="n">shared_plots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;empty array list?&quot;</span>
+        <span class="c1"># arrays is a &quot;list of lists of arrays&quot;</span>
+        <span class="k">for</span> <span class="n">arrs</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrs</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;1D array expected!&quot;</span>
+        <span class="k">assert</span> <span class="n">max_datapoints</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;positive max_datapoints expected!&quot;</span>
+        <span class="k">if</span> <span class="n">samplerates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">samplerates</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">),</span>\
+                <span class="s2">&quot;Number of samplerates must equal number of arrays!&quot;</span>
+            <span class="k">for</span> <span class="n">sr</span> <span class="ow">in</span> <span class="n">samplerates</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">sr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">sr</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;all samplerates must be positive!&quot;</span>
+        <span class="k">if</span> <span class="n">shared_plots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">shared_plots</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">),</span>\
+                <span class="s2">&quot;Number of shared_plots must equal number of arrays!&quot;</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span> <span class="o">=</span> <span class="p">[[</span><span class="n">DownsamplableFunction</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">max_datapoints</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrs</span><span class="p">]</span>
+                       <span class="k">for</span> <span class="n">arrs</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arr_maxlengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrs</span><span class="p">])</span>
+                               <span class="k">for</span> <span class="n">arrs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samplerates</span> <span class="o">=</span> <span class="p">([</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">)]</span>
+                            <span class="k">if</span> <span class="n">samplerates</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">samplerates</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_plots</span> <span class="o">=</span> <span class="p">([</span><span class="kc">False</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">)]</span>
+                             <span class="k">if</span> <span class="n">shared_plots</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">shared_plots</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_plots</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">b</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_shared_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">]</span>
+
+<div class="viewcode-block" id="MultipleDownsampledPlotter1D.make_fig"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.plotters.MultipleDownsampledPlotter1D.make_fig">[docs]</a>    <span class="k">def</span> <span class="nf">make_fig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_xticks</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">num_yticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">tick_fontsize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+                 <span class="n">tick_rot_deg</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">show_idx</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: A matplotlib Figure containing the array given at</span>
+<span class="sd">          construction. The interactive plot of the figure will react</span>
+<span class="sd">          to the user&#39;s zooming by showing approximately</span>
+<span class="sd">          ``self.max_datapoints`` number of samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># define and configure plt figure</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FIG_ASPECT_RATIO</span><span class="p">)</span>
+        <span class="n">gs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># first create non-shared axes</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_shared_idxs</span><span class="p">]</span>
+
+        <span class="c1"># then create the first shared, the rest with share with the first</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">:</span>
+            <span class="n">shared_axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]])]</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">shared_axes</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                                                    <span class="n">sharex</span><span class="o">=</span><span class="n">shared_axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">,</span> <span class="n">shared_axes</span><span class="p">):</span>
+                <span class="n">axes</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+
+        <span class="c1"># plots</span>
+        <span class="n">line_lists</span> <span class="o">=</span> <span class="p">[[</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrs</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">arrs</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">,</span> <span class="n">axes</span><span class="p">)]</span>
+
+        <span class="c1"># tricky part: tied axes must have tied callbacks. First create the</span>
+        <span class="c1"># independent functors</span>
+        <span class="n">functors</span> <span class="o">=</span> <span class="p">[</span><span class="n">XlimCallbackFunctor</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lns</span><span class="p">,</span> <span class="n">arrs</span><span class="p">)</span> <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">lns</span><span class="p">,</span> <span class="n">arrs</span> <span class="ow">in</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">line_lists</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">)]</span>
+        <span class="c1"># and then replace the shared ones, if existing:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">:</span>
+            <span class="n">shared_f</span> <span class="o">=</span> <span class="n">SharedXlimCallbackFunctor</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">functors</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span><span class="p">])</span>
+            <span class="n">functors</span> <span class="o">=</span> <span class="p">[</span><span class="n">shared_f</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_idxs</span> <span class="k">else</span> <span class="n">f</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">functors</span><span class="p">)]</span>
+
+        <span class="c1"># configure axes ticks and labels</span>
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">fnc</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplerates</span><span class="p">,</span> <span class="n">functors</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">arr_maxlengths</span><span class="p">):</span>
+            <span class="c1"># set vertical grid</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># number of x and y ticks</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">locator_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">num_xticks</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">locator_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">num_yticks</span><span class="p">)</span>
+
+            <span class="c1"># alignment, font and rotation of labels</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">(),</span> <span class="n">rotation</span><span class="o">=</span><span class="n">tick_rot_deg</span><span class="p">,</span>
+                     <span class="n">fontsize</span><span class="o">=</span><span class="n">tick_fontsize</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s2">&quot;DejaVu Sans&quot;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">(),</span>
+                     <span class="n">fontsize</span><span class="o">=</span><span class="n">tick_fontsize</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s2">&quot;DejaVu Sans&quot;</span><span class="p">)</span>
+
+            <span class="c1"># optionally adapt labels to given sample rates</span>
+            <span class="k">if</span> <span class="n">sr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">SampleToTimestampFormatter</span><span class="p">(</span><span class="n">sr</span><span class="p">,</span> <span class="n">num_decimals</span><span class="p">,</span> <span class="n">show_idx</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;xlim_changed&#39;</span><span class="p">,</span> <span class="n">fnc</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">FIG_MARGINS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+
+
+<span class="c1"># class AudioAndMvnPlotter(DownsampledPlotter1D):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     # plt.rcParams[&quot;patch.force_edgecolor&quot;] = True</span>
+<span class="c1">#     FIG_ASPECT_RATIO = (10, 8)</span>
+<span class="c1">#     # FIG_WIDTH_RATIOS = [5, 5]</span>
+<span class="c1">#     # # FIG_HEIGHT_RATIOS = [10,3,10] # line, margin, line</span>
+<span class="c1">#     # FIG_MARGINS = {&quot;top&quot;:0.8, &quot;bottom&quot;:0.2, &quot;left&quot;:0.1, &quot;right&quot;:0.9}</span>
+<span class="c1">#     FIG_MARGINS = {&quot;top&quot;: 0.8, &quot;bottom&quot;: 0.05, &quot;left&quot;: 0.05, &quot;right&quot;: 0.95,</span>
+<span class="c1">#                    &quot;hspace&quot;: 0.5, &quot;wspace&quot;: 0.5}</span>
+<span class="c1">#     # FOR 1.0, THE AXIS WILL COVER EXACTLY UNTIL THE MAXIMUM</span>
+<span class="c1">#     # RATIO_RANGE_AXIS = 1.15</span>
+<span class="c1">#     # 0.05 MEANS THE DISTANCE BETWEEN BARS AND LABELS IS 5% OF THE AXIS</span>
+<span class="c1">#     # RATIO_LABELS_DISTANCE = 0.02</span>
+<span class="c1">#     # #</span>
+<span class="c1">#     FIG_TITLE_FONTSIZE = 15</span>
+<span class="c1">#     # AX_TITLE_FONTSIZE = 18</span>
+<span class="c1">#     # # TABLE_FONTSIZE = 9</span>
+<span class="c1">#     TICKS_FONTSIZE = 7</span>
+<span class="c1">#     # CONFMAT_NUMBER_COLOR = &quot;cyan&quot;</span>
+<span class="c1">#     # CONFMAT_NUMBER_FONTSIZE = 12</span>
+<span class="c1">#     # NUM_YTICKS = 13</span>
+<span class="c1">#     # LABELS_FONTSIZE = 12</span>
+<span class="c1">#     # LEGEND_FONTSIZE = 15</span>
+<span class="c1">#     # BAR_WIDTH = 0.85</span>
+<span class="c1">#     # FPOS_COLOR = &quot;#b0b000&quot;</span>
+<span class="c1">#     # FNEG_COLOR = &quot;#e6194b&quot;</span>
+
+
+<span class="c1">#     def __init__(self, arr, mvn, max_datapoints=10000, samplerate=None):</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         super().__init__(arr, max_datapoints, samplerate)</span>
+<span class="c1">#         self.mvn = mvn</span>
+
+<span class="c1">#     # def make_fig(self, fig_title, audio_arr, total, x_shared):</span>
+<span class="c1">#     #     &quot;&quot;&quot;</span>
+<span class="c1">#     #     &quot;&quot;&quot;</span>
+<span class="c1">#     #     # define and configure plt figure</span>
+<span class="c1">#     #     fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)</span>
+<span class="c1">#     #     gs = list(gridspec.GridSpec(total, 1))</span>
+<span class="c1">#     #     axes = [plt.subplot(gs[0])]</span>
+<span class="c1">#     #     # add shared-x axes</span>
+<span class="c1">#     #     axes += [plt.subplot(gsi, sharex=axes[0])</span>
+<span class="c1">#     #              for gsi in gs[1: x_shared]]</span>
+<span class="c1">#     #     # add remaining axes:</span>
+<span class="c1">#     #     axes += [plt.subplot(gsi) for gsi in gs[x_shared:]]</span>
+
+<span class="c1">#     #     #</span>
+<span class="c1">#     #     info = &quot;\nNo. axes=%d, dep. axes=%d&quot; % (total, x_shared)</span>
+<span class="c1">#     #     fig.suptitle(fig_title + info, fontsize=self.FIG_TITLE_FONTSIZE,</span>
+<span class="c1">#     #                  fontweight=&quot;bold&quot;)</span>
+<span class="c1">#     #     fig.canvas.set_window_title(fig_title)</span>
+
+<span class="c1">#     #     axes[0].plot(audio_arr)</span>
+
+<span class="c1">#     #     for ax in axes[1:]:</span>
+<span class="c1">#     #         ax.plot(range(10), range(10))</span>
+<span class="c1">#     #     fig.subplots_adjust(**self.FIG_MARGINS)</span>
+<span class="c1">#     #     return fig</span>
+
+
+<span class="c1">#     def make_fig(self, num_xticks=10, num_yticks=10, tick_fontsize=7):</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         :returns: A matplotlib Figure containing the array given at</span>
+<span class="c1">#           construction. The interactive plot of the figure will react</span>
+<span class="c1">#           to the user&#39;s zooming by showing approximately</span>
+<span class="c1">#           ``self.max_datapoints`` number of samples.</span>
+
+<span class="c1">#         Reference:</span>
+<span class="c1">#         https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         fig, ax = plt.subplots()</span>
+<span class="c1">#         self.axx, = ax.plot(self.arange, self.arr, &#39;-&#39;)</span>
+<span class="c1">#         # set number of ticks</span>
+<span class="c1">#         ax.locator_params(axis=&quot;x&quot;, nbins=num_xticks)</span>
+<span class="c1">#         ax.locator_params(axis=&quot;y&quot;, nbins=num_yticks)</span>
+<span class="c1">#         #</span>
+<span class="c1">#         ax.xaxis.tick_top()</span>
+<span class="c1">#         plt.setp(ax.xaxis.get_majorticklabels(), rotation=30,</span>
+<span class="c1">#                  fontsize=tick_fontsize, family=&quot;DejaVu Sans&quot;, ha=&quot;left&quot;)</span>
+<span class="c1">#         plt.setp(ax.yaxis.get_majorticklabels(),</span>
+<span class="c1">#                  fontsize=tick_fontsize, family=&quot;DejaVu Sans&quot;)</span>
+<span class="c1">#         ax.set_autoscale_on(False)  # Otherwise, infinite loop</span>
+<span class="c1">#         ax.callbacks.connect(&#39;xlim_changed&#39;, self._update_ax)</span>
+<span class="c1">#         ax.set_xlim(0, len(self.arr))</span>
+<span class="c1">#         ax.xaxis.grid(True)</span>
+<span class="c1">#         if self.samplerate is not None:</span>
+<span class="c1">#             f = plt.FuncFormatter(lambda val, pos:</span>
+<span class="c1">#                                   sample_to_timestamp_formatter(</span>
+<span class="c1">#                                       val, pos, self.samplerate))</span>
+<span class="c1">#             ax.xaxis.set_major_formatter(f)</span>
+<span class="c1">#         #</span>
+<span class="c1">#         return fig</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

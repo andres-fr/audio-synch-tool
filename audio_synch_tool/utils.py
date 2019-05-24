@@ -62,28 +62,35 @@ class Timestamp(object):
     @property
     def sample_nr(self):
         return self._sample_nr
+
     @property
     def samplerate(self):
         return self._samplerate
+
     @property
     def total_seconds(self):
         return self._total_seconds
+
     @property
     def days(self):
         return self._days
+
     @property
     def hours(self):
         return self._hours
+
     @property
     def mins(self):
         return self._mins
+
     @property
     def secs(self):
         return self._secs
+
     @property
     def microsecs(self):
         return self._microsecs
-    
+
     def as_tuple(self):
         """
         :returns: the tuple of integers (days, hours, mins, secs, microsecs)
@@ -95,7 +102,6 @@ class Timestamp(object):
         Returns a string in the form "{X days} h:m:s.microseconds"
         """
         return self._timestamp
-
 
 
 # #############################################################################
@@ -182,14 +188,11 @@ class DownsamplableFunction(object):
         end = int(min(xend, self._len))
         ratio = int(max(1, (end - start) // self.max_datapoints))
         #
-        x_down = self.x[start : end + 1 : ratio]
-        y_down = self.y[start : end + 1 : ratio]
+        x_down = self.x[start:end + 1:ratio]
+        y_down = self.y[start:end + 1:ratio]
         #
         print("using", x_down.shape[0], "points")
         return x_down, y_down
-
-
-
 
 
 class XlimCallbackFunctor(object):

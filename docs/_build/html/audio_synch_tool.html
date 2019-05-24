@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool package &mdash; audio_synch_tool 0.1.0 documentation</title>
+  <title>audio_synch_tool package &mdash; audio_synch_tool 0.4.0 documentation</title>
   
 
   
@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="audio_synch_tool.data package" href="audio_synch_tool.data.html" />
     <link rel="prev" title="Welcome to audio_synch_tool’s documentation!" href="index.html" /> 
 
   
@@ -57,7 +58,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.4.0
               </div>
             
           
@@ -84,6 +85,14 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">audio_synch_tool package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="audio_synch_tool.data.html">audio_synch_tool.data package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.mvn">audio_synch_tool.mvn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.plotters">audio_synch_tool.plotters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.utils">audio_synch_tool.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool">Module contents</a></li>
 </ul>
 </li>
@@ -153,6 +162,309 @@
             
   <div class="section" id="audio-synch-tool-package">
 <h1>audio_synch_tool package<a class="headerlink" href="#audio-synch-tool-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="audio_synch_tool.data.html">audio_synch_tool.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="audio_synch_tool.data.html#module-audio_synch_tool.data">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-audio_synch_tool.mvn">
+<span id="audio-synch-tool-mvn-module"></span><h2>audio_synch_tool.mvn module<a class="headerlink" href="#module-audio_synch_tool.mvn" title="Permalink to this headline">¶</a></h2>
+<p>This module contains functionality concerning the adaption of the
+XSENS MVN format into our Python setup.</p>
+<p>The following section introduces the contents of the imported MVN file and the
+way they can be accessed from Python:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd</span>
+<span class="n">MVN_SCHEMA_PATH</span> <span class="o">=</span> <span class="s2">&quot;xxx&quot;</span>
+<span class="n">mvn_path</span> <span class="o">=</span> <span class="s2">&quot;yyy&quot;</span>
+<span class="n">mmvn</span> <span class="o">=</span> <span class="n">Mvn</span><span class="p">(</span><span class="n">mvn_path</span><span class="p">,</span> <span class="n">MVN_SCHEMA_PATH</span><span class="p">)</span>
+
+<span class="c1"># These elements contain some small metadata:</span>
+<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">attrib</span>
+<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">comment</span><span class="o">.</span><span class="n">attrib</span>
+<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">securityCode</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>
+<span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">attrib</span>
+
+<span class="c1"># subject.segments contain 3D pos_b labels:</span>
+<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">segments</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">attrib</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">()]</span>
+
+<span class="c1"># sensors is basically a list of names</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">sensors</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">attrib</span>
+
+<span class="c1">#  Joints is a list that connects segment points:</span>
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">joints</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span> <span class="n">j</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+
+<span class="c1"># miscellaneous:</span>
+<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">ergonomicJointAngles</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+    <span class="n">j</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="n">j</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">footContactDefinition</span><span class="o">.</span><span class="n">iterchildren</span><span class="p">():</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+
+<span class="c1"># The bulk of the data is in the frames.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;frames_metadata:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;first_frame_type:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">config_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;normal_frames_type:&quot;</span><span class="p">,</span> <span class="n">mmvn</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;num_normal_frames:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mmvn</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">))</span>
+
+<span class="c1"># Metadata looks like this:</span>
+<span class="p">{</span><span class="s1">&#39;segmentCount&#39;</span><span class="p">:</span> <span class="s1">&#39;23&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorCount&#39;</span><span class="p">:</span> <span class="s1">&#39;17&#39;</span><span class="p">,</span> <span class="s1">&#39;jointCount&#39;</span><span class="p">:</span> <span class="s1">&#39;22&#39;</span><span class="p">}</span>
+
+<span class="c1"># config frames have the following fields:</span>
+<span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;tc&#39;</span><span class="p">,</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+
+<span class="c1"># normal frames have the following fields:</span>
+<span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;acceleration&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;angularVelocity&#39;</span><span class="p">,</span> <span class="s1">&#39;angularAcceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;footContacts&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;sensorFreeAcceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorMagneticField&#39;</span><span class="p">,</span> <span class="s1">&#39;sensorOrientation&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;jointAngle&#39;</span><span class="p">,</span> <span class="s1">&#39;jointAngleXZY&#39;</span><span class="p">,</span> <span class="s1">&#39;jointAngleErgo&#39;</span><span class="p">,</span> <span class="s1">&#39;centerOfMass&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;tc&#39;</span><span class="p">,</span> <span class="s1">&#39;ms&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The following fields contain metadata about the frame:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">time:</th><td class="field-body">ms since start (integer). It is close to
+<code class="docutils literal notranslate"><span class="pre">int(1000.0</span> <span class="pre">*</span> <span class="pre">index</span> <span class="pre">/</span> <span class="pre">samplerate)</span></code>, being equal most of the times and
+at most 1 milisecond away. It is neither truncated nor rounded, maybe it
+is given by the hardware.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">index:</th><td class="field-body">starts with 0, +1 each normal frame</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">tc:</th><td class="field-body">string like ‘02:23:28:164’</td>
+</tr>
+<tr class="field-even field"><th class="field-name">ms:</th><td class="field-body">unix timestamp like 1515983008686 (used to compute time)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body">one of “identity”, “tpose”, “tpose-isb”, “normal”</td>
+</tr>
+</tbody>
+</table>
+<p># The following fields are float vectors of the following dimensionality:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">orientation:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">segmentCount*4</span> <span class="pre">=</span> <span class="pre">92</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">position, velocity, acceleration, angularVelocity, angularAcceleration:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">segmentCount*3</span> <span class="pre">=</span> <span class="pre">69</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">footContacts:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">4</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">sensorFreeAcceleration, sensorMagneticField:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">sensorCount*3</span> <span class="pre">=</span> <span class="pre">51</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">sensorOrientation:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">sensorCount*4</span> <span class="pre">=</span> <span class="pre">68</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">jointAngle, jointAngleXZY:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">jointCount*3</span> <span class="pre">=</span> <span class="pre">66</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">jointAngleErgo:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">12</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">centerOfMass:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">3</span></code></td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="audio_synch_tool.mvn.Mvn">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.mvn.</code><code class="descname">Mvn</code><span class="sig-paren">(</span><em>mvn_path</em>, <em>schema_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class imports and adapts an XML file (expected to be in MVN format)
+to a Python-friendly representation. See this module’s docstring for usage
+examples and more information.</p>
+<dl class="method">
+<dt id="audio_synch_tool.mvn.Mvn.get_segments">
+<code class="descname">get_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.get_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.get_segments" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of the segment names in <code class="docutils literal notranslate"><span class="pre">self.mvn.subject.segments</span></code>,
+ordered by id (starting at 1 and incrementing +1).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-audio_synch_tool.plotters">
+<span id="audio-synch-tool-plotters-module"></span><h2>audio_synch_tool.plotters module<a class="headerlink" href="#module-audio_synch_tool.plotters" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="audio_synch_tool.plotters.MultipleDownsampledPlotter1D">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.plotters.</code><code class="descname">MultipleDownsampledPlotter1D</code><span class="sig-paren">(</span><em>arrays</em>, <em>samplerates=None</em>, <em>max_datapoints=10000</em>, <em>shared_plots=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#MultipleDownsampledPlotter1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class generates a matplotlib figure that plots several 1-dimensional
+arrays. Since some arrays can be quite long, it features a built-in
+downsampling mechanism that plots a (configurable) number of points
+at most. The downsampling mechanism is based on this code:</p>
+<p><a class="reference external" href="https://matplotlib.org/3.1.0/gallery/event_handling/resample.html">https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The downsampling mechanism only affects the display, not the data,
+and is refreshed every time the user changes the perspective.
+If the user zooms close enough the data will be displayed in its
+original form. Therefore downsampling helps to provide a quicker
+interaction when scrolling large files, while allowing for
+sample-precise inspection.</p>
+</div>
+<dl class="attribute">
+<dt id="audio_synch_tool.plotters.MultipleDownsampledPlotter1D.FIG_ASPECT_RATIO">
+<code class="descname">FIG_ASPECT_RATIO</code><em class="property"> = (10, 8)</em><a class="headerlink" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D.FIG_ASPECT_RATIO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.plotters.MultipleDownsampledPlotter1D.FIG_MARGINS">
+<code class="descname">FIG_MARGINS</code><em class="property"> = {'bottom': 0.1, 'hspace': 0.5, 'left': 0.1, 'right': 0.95, 'top': 0.95, 'wspace': 0.05}</em><a class="headerlink" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D.FIG_MARGINS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="audio_synch_tool.plotters.MultipleDownsampledPlotter1D.make_fig">
+<code class="descname">make_fig</code><span class="sig-paren">(</span><em>num_xticks=15</em>, <em>num_yticks=10</em>, <em>tick_fontsize=7</em>, <em>tick_rot_deg=15</em>, <em>num_decimals=3</em>, <em>show_idx=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#MultipleDownsampledPlotter1D.make_fig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D.make_fig" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A matplotlib Figure containing the array given at
+construction. The interactive plot of the figure will react
+to the user’s zooming by showing approximately
+<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-audio_synch_tool.utils">
+<span id="audio-synch-tool-utils-module"></span><h2>audio_synch_tool.utils module<a class="headerlink" href="#module-audio_synch_tool.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="audio_synch_tool.utils.DownsamplableFunction">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.utils.</code><code class="descname">DownsamplableFunction</code><span class="sig-paren">(</span><em>arr</em>, <em>max_datapoints</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#DownsamplableFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.DownsamplableFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Encapsulates the downsampling functionality to prevent side effects,
+and reduce code verbosity in plotter.</p>
+<dl class="method">
+<dt id="audio_synch_tool.utils.DownsamplableFunction.downsampled">
+<code class="descname">downsampled</code><span class="sig-paren">(</span><em>xstart</em>, <em>xend</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#DownsamplableFunction.downsampled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.DownsamplableFunction.downsampled" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs downsampling by reading one sample every
+<code class="docutils literal notranslate"><span class="pre">(xend-xstart)//max_datapoints</span></code> from x_vals and y_vals.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="audio_synch_tool.utils.SampleToTimestampFormatter">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.utils.</code><code class="descname">SampleToTimestampFormatter</code><span class="sig-paren">(</span><em>samplerate</em>, <em>num_decimals=3</em>, <em>show_idx=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#SampleToTimestampFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.SampleToTimestampFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This functor can be passed to <code class="docutils literal notranslate"><span class="pre">plt.FuncFormatter</span></code> to generate custom
+tick labels. It fulfills the interface (val, pos) -&gt; str.</p>
+<p>Specifically, converts <code class="docutils literal notranslate"><span class="pre">val</span></code> number representing a sample into a string
+showing the corresponding elapsed time since sample 0, asuming the given
+samplerate.
+Usage example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">FuncFormatter</span><span class="p">(</span>
+                             <span class="n">SampleToTimestampFormatter</span><span class="p">(</span><span class="n">sr</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="audio_synch_tool.utils.SharedXlimCallbackFunctor">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.utils.</code><code class="descname">SharedXlimCallbackFunctor</code><span class="sig-paren">(</span><em>functors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#SharedXlimCallbackFunctor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.SharedXlimCallbackFunctor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>If multiple axes share</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="audio_synch_tool.utils.Timestamp">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.utils.</code><code class="descname">Timestamp</code><span class="sig-paren">(</span><em>sample_nr</em>, <em>samplerate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#Timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.Timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="audio_synch_tool.utils.Timestamp.as_tuple">
+<code class="descname">as_tuple</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#Timestamp.as_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.as_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the tuple of integers (days, hours, mins, secs, microsecs)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.days">
+<code class="descname">days</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.days" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.hours">
+<code class="descname">hours</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.hours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.microsecs">
+<code class="descname">microsecs</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.microsecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.mins">
+<code class="descname">mins</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.mins" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.sample_nr">
+<code class="descname">sample_nr</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.sample_nr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.samplerate">
+<code class="descname">samplerate</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.samplerate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.secs">
+<code class="descname">secs</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.secs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.utils.Timestamp.total_seconds">
+<code class="descname">total_seconds</code><a class="headerlink" href="#audio_synch_tool.utils.Timestamp.total_seconds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="audio_synch_tool.utils.XlimCallbackFunctor">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.utils.</code><code class="descname">XlimCallbackFunctor</code><span class="sig-paren">(</span><em>axis</em>, <em>lines</em>, <em>arrays</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#XlimCallbackFunctor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.XlimCallbackFunctor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Encapsulates the downsampling callback functionality to prevent side
+effects. Instances of this functor can be passed to an axis like
+this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>``ax.callbacks.connect(&#39;xlim_changed&#39;,
+                 DownsamplingCallbackFunctor(ax, [line1..], [arr1...]))``
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="module-audio_synch_tool">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-audio_synch_tool" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -165,6 +477,8 @@
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="audio_synch_tool.data.html" class="btn btn-neutral float-right" title="audio_synch_tool.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="Welcome to audio_synch_tool’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

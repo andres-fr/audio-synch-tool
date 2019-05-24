@@ -52,11 +52,11 @@ way they can be accessed from Python::
   ['orientation', 'position', 'time', 'tc', 'ms', 'type']
 
   # normal frames have the following fields:
-['orientation', 'position', 'velocity', 'acceleration',
- 'angularVelocity', 'angularAcceleration', 'footContacts',
- 'sensorFreeAcceleration', 'sensorMagneticField', 'sensorOrientation',
- 'jointAngle', 'jointAngleXZY', 'jointAngleErgo', 'centerOfMass', 'time',
- 'index', 'tc', 'ms', 'type']
+  ['orientation', 'position', 'velocity', 'acceleration',
+   'angularVelocity', 'angularAcceleration', 'footContacts',
+   'sensorFreeAcceleration', 'sensorMagneticField', 'sensorOrientation',
+   'jointAngle', 'jointAngleXZY', 'jointAngleErgo', 'centerOfMass', 'time',
+   'index', 'tc', 'ms', 'type']
 
 The following fields contain metadata about the frame:
 

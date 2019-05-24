@@ -4,7 +4,7 @@
 env:
   global:
     # test stage config
-    - CODECOV_REQUIRED_PERCENT="50.0" # for utest+codecov
+    - CODECOV_REQUIRED_PERCENT="0.0" # for utest+codecov
     # - MAX_MB_ALLOWED="512" # for mem benchmark
     # - MEM_MEASURE_EVERY_SEC="0.05" # in seconds, measure memory at these intervals
     # - MAX_SEC_PER_LOOP="5.0" # for time benchmark

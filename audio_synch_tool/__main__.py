@@ -39,10 +39,9 @@ class WavMvnStruct(object):
         self.mvn = mvn_obj
 
 
-
-# # #############################################################################
-# # ## MAIN ROUTINE
-# # #############################################################################
+# #############################################################################
+# ## MAIN ROUTINE
+# #############################################################################
 
 # NUM_TRACKS = 8
 # NUM_SHARED = 3
@@ -50,13 +49,14 @@ MAX_SAMPLES_PLOTTED = 1e5
 NUM_XTICKS = 20
 
 WAV_PATH = os.path.join(os.getenv("HOME"), "SAG_D1_10_M-Jem-2.wav")
-MVN_PATH = os.path.join(os.getenv("HOME"), "SAG_D1-003_(snippet)_slate01_2-23-29.701.mvnx")
-# MVN_PATH = os.path.join(os.getenv("HOME"), "SAG_D1-003_(snippet)_slate03_2-35-44.759.mvnx")
+MVN_PATH = os.path.join(os.getenv("HOME"),
+                        "SAG_D1-003_(snippet)_slate01_2-23-29.701.mvnx")
+# MVN_PATH = os.path.join(os.getenv("HOME"),
+#                       "SAG_D1-003_(snippet)_slate03_2-35-44.759.mvnx")
 
 
 MVN_SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                "data", "mvn_schema_adapted.xsd")
-
 
 wav_arr, audio_samplerate = sf.read(WAV_PATH)
 mocap = Mvn(MVN_PATH, MVN_SCHEMA_PATH)
@@ -76,12 +76,11 @@ for i, f in enumerate(mocap.normal_frames):
     acc = f["acceleration"]
     assert len(acc) == n_segments * 3, "Malformed acceleration vector?"
     for j, segment in enumerate(mocap_segments):
-        segment_3d_vec = torch.Tensor(acc[3 * j : 3 * j + 3])
+        segment_3d_vec = torch.Tensor(acc[3 * j:3 * j + 3])
         mocap_accelerations_3d[segment].append(segment_3d_vec)
 
 mocap_accel_norm = {k: torch.Tensor([torch.norm(vv, 2) for vv in v]).numpy()
                     for k, v in mocap_accelerations_3d.items()}
-
 
 
 def test_plot():
@@ -94,9 +93,10 @@ def test_plot():
     p = MultipleDownsampledPlotter1D(arrays, samplerates, MAX_SAMPLES_PLOTTED,
                                      tied_plots)
     fig = p.make_fig(num_xticks=NUM_XTICKS)
+    print(fig)
     plt.show()
 
-print(mocap_segments)
+
 arrays = [[wav_arr],
           [mocap_accel_norm["LeftForeArm"], mocap_accel_norm["LeftHand"]],
           [mocap_accel_norm["RightForeArm"], mocap_accel_norm["RightHand"]]]
@@ -111,7 +111,6 @@ plt.show()
 # for f in mocap.normal_frames:
 #     print(len(f["acceleration"]))
 
-
 # The enumerate thing is to make sure they are ordered by id.
 # mvn_segments = [ch.attrib["label"] if str(i) == ch.attrib["id"] else None
 #                 for i, ch in enumerate(
@@ -120,18 +119,11 @@ plt.show()
 #     "Segments aren't ordered by id?"
 # test_plot()
 
-
-
 # ['orientation', 'position', 'velocity', 'acceleration',
 #  'angularVelocity', 'angularAcceleration', 'footContacts',
 #  'sensorFreeAcceleration', 'sensorMagneticField', 'sensorOrientation',
 #  'jointAngle', 'jointAngleXZY', 'jointAngleErgo', 'centerOfMass', 'time',
 #  'index', 'tc', 'ms', 'type']
-
-
-
-## acceleration: 69 frames. segmentcount * 3
-
 
 # for k,v in mocap_accelerations_norm.items():
 #     print(k, v)

@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>audio_synch_tool.utils &mdash; audio_synch_tool 0.4.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> audio_synch_tool
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_synch_tool.html">audio_synch_tool package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">audio_synch_tool</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>audio_synch_tool.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for audio_synch_tool.utils</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># os+plt imports right after __future__</span>
+<span class="c1"># import os</span>
+<span class="c1"># import matplotlib as mpl</span>
+<span class="c1"># if os.environ.get(&#39;DISPLAY&#39;, &#39;&#39;) == &#39;&#39;:</span>
+<span class="c1">#     print(&#39;no display found. Using non-interactive Agg backend&#39;)</span>
+<span class="c1">#     mpl.use(&#39;Agg&#39;)</span>
+<span class="c1"># import matplotlib.pyplot as plt</span>
+<span class="c1"># from matplotlib import gridspec</span>
+<span class="c1"># import soundfile as sf</span>
+<span class="c1"># import torch</span>
+<span class="c1"># import numpy as np</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## LOGIC</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="Timestamp"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.Timestamp">[docs]</a><span class="k">class</span> <span class="nc">Timestamp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_nr</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param number sample_nr: Current sample number</span>
+<span class="sd">        :param number samplerate: No. of samples per second (must be positive)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">samplerate</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Only non-negative samplerate allowed!&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="o">=</span> <span class="n">sample_nr</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_nr</span> <span class="o">=</span> <span class="n">sample_nr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_samplerate</span> <span class="o">=</span> <span class="n">samplerate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_seconds</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sample_nr</span><span class="p">)</span> <span class="o">/</span> <span class="n">samplerate</span>
+        <span class="c1"># NOTE: to enforce symmetry around zero, compute for positive value</span>
+        <span class="c1"># and then flip the sign</span>
+        <span class="n">td</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_seconds</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">days</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">//</span> <span class="mi">3600</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">//</span> <span class="mi">60</span><span class="p">)</span> <span class="o">%</span> <span class="mi">60</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">%</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="n">mms</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">microseconds</span>
+        <span class="n">td_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">td</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_days</span> <span class="o">=</span> <span class="o">-</span><span class="n">d</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hours</span> <span class="o">=</span> <span class="o">-</span><span class="n">h</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">h</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mins</span> <span class="o">=</span> <span class="o">-</span><span class="n">m</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_secs</span> <span class="o">=</span> <span class="o">-</span><span class="n">s</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_microsecs</span> <span class="o">=</span> <span class="o">-</span><span class="n">mms</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">mms</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">td_str</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_negative</span> <span class="k">else</span> <span class="n">td_str</span>
+
+    <span class="c1"># &quot;read-only&quot; attributes:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sample_nr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_nr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">samplerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samplerate</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_seconds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_seconds</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">days</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_days</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hours</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hours</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mins</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">secs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_secs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">microsecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_microsecs</span>
+
+<div class="viewcode-block" id="Timestamp.as_tuple"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.Timestamp.as_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">as_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: the tuple of integers (days, hours, mins, secs, microsecs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hours</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">secs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">microsecs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a string in the form &quot;{X days} h:m:s.microseconds&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp</span></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## MATPLOTLIB-RELATED</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="SampleToTimestampFormatter"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.SampleToTimestampFormatter">[docs]</a><span class="k">class</span> <span class="nc">SampleToTimestampFormatter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This functor can be passed to ``plt.FuncFormatter`` to generate custom</span>
+<span class="sd">    tick labels. It fulfills the interface (val, pos) -&gt; str.</span>
+
+<span class="sd">    Specifically, converts ``val`` number representing a sample into a string</span>
+<span class="sd">    showing the corresponding elapsed time since sample 0, asuming the given</span>
+<span class="sd">    samplerate.</span>
+<span class="sd">    Usage example::</span>
+
+<span class="sd">      ax.xaxis.set_major_formatter(plt.FuncFormatter(</span>
+<span class="sd">                                   SampleToTimestampFormatter(sr)))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">show_idx</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param number samplerate: A number so that seconds = val / samplerate</span>
+<span class="sd">        :param int num_decimals: An integer between 0 and 6.</span>
+<span class="sd">        :param bool show_idx: If true, the sample index will be also shown.</span>
+<span class="sd">        :returns: A string in the form &quot;{X days} h:m:s.ms&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">num_decimals</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;num_decimals must be in [0, ..., 6]!&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samplerate</span> <span class="o">=</span> <span class="n">samplerate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_decimals</span> <span class="o">=</span> <span class="n">num_decimals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_remove</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">-</span> <span class="n">num_decimals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_idx</span> <span class="o">=</span> <span class="n">show_idx</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param number val: the axis value where the tick goes</span>
+<span class="sd">        :param int pos: from 0 (left margin) to num_ticks+2 (right</span>
+<span class="sd">          margin)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">Timestamp</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplerate</span><span class="p">)</span>
+        <span class="n">ts_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">microsecs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ts_str</span> <span class="o">=</span> <span class="n">ts_str</span><span class="p">[:</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_remove</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_idx</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">ts_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; (&quot;</span> <span class="o">+</span> <span class="n">ts_str</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">return</span> <span class="n">ts_str</span></div>
+
+
+<div class="viewcode-block" id="DownsamplableFunction"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.DownsamplableFunction">[docs]</a><span class="k">class</span> <span class="nc">DownsamplableFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates the downsampling functionality to prevent side effects,</span>
+<span class="sd">    and reduce code verbosity in plotter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">max_datapoints</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given an array representing a function, the original x and y values can</span>
+<span class="sd">        be accessed via ``self.x, self.y``, and the downsampled values via</span>
+<span class="sd">        ``self.downsampled(xstart, xend)``.</span>
+
+<span class="sd">        :param arr: A non-empty, one-dimensional array</span>
+<span class="sd">        :param int max_datapoints: A positive number. See docstring for</span>
+<span class="sd">          the downsampled method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Only 1D arrays expected!&quot;</span>
+        <span class="k">assert</span> <span class="n">max_datapoints</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;max_datapoints must be positive!&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Empty array?&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">arr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_len</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_datapoints</span> <span class="o">=</span> <span class="n">max_datapoints</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len</span>
+
+<div class="viewcode-block" id="DownsamplableFunction.downsampled"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.DownsamplableFunction.downsampled">[docs]</a>    <span class="k">def</span> <span class="nf">downsampled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function performs downsampling by reading one sample every</span>
+<span class="sd">        ``(xend-xstart)//max_datapoints`` from x_vals and y_vals.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">xstart</span> <span class="o">&lt;=</span> <span class="n">xend</span><span class="p">,</span> <span class="s2">&quot;malformed downsampling range!&quot;</span>
+        <span class="c1">#</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">xstart</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">xend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len</span><span class="p">))</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_datapoints</span><span class="p">))</span>
+        <span class="c1">#</span>
+        <span class="n">x_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">ratio</span><span class="p">]</span>
+        <span class="n">y_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">ratio</span><span class="p">]</span>
+        <span class="c1">#</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;using&quot;</span><span class="p">,</span> <span class="n">x_down</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;points&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x_down</span><span class="p">,</span> <span class="n">y_down</span></div></div>
+
+
+<div class="viewcode-block" id="XlimCallbackFunctor"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.XlimCallbackFunctor">[docs]</a><span class="k">class</span> <span class="nc">XlimCallbackFunctor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Encapsulates the downsampling callback functionality to prevent side</span>
+<span class="sd">    effects. Instances of this functor can be passed to an axis like</span>
+<span class="sd">    this::</span>
+
+<span class="sd">      ``ax.callbacks.connect(&#39;xlim_changed&#39;,</span>
+<span class="sd">                       DownsamplingCallbackFunctor(ax, [line1..], [arr1...]))``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">arrays</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">),</span> <span class="s2">&quot;error: len(lines) != len(arrays)&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span> <span class="o">=</span> <span class="n">arrays</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See also::</span>
+<span class="sd">        https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lims</span> <span class="o">=</span> <span class="n">ax_limits</span><span class="o">.</span><span class="n">viewLim</span>
+        <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="n">lims</span><span class="o">.</span><span class="n">intervalx</span>
+        <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">):</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="o">*</span><span class="n">a</span><span class="o">.</span><span class="n">downsampled</span><span class="p">(</span><span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw_idle</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SharedXlimCallbackFunctor"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.SharedXlimCallbackFunctor">[docs]</a><span class="k">class</span> <span class="nc">SharedXlimCallbackFunctor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If multiple axes share</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functors</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">functors</span> <span class="o">=</span> <span class="n">functors</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">functors</span><span class="p">:</span>
+            <span class="n">f</span><span class="p">(</span><span class="n">ax_limits</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Andres FR
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
