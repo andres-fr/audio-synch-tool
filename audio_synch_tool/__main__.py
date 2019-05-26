@@ -11,7 +11,7 @@ import soundfile as sf
 import torch
 
 # from .utils import Timestamp
-from .plotters import AudioMvnSynchTool, MultipleDownsampledPlotter1D
+from .plotters import MultipleDownsampledPlotter1D
 from .mvn import Mvn
 
 __author__ = "Andres FR"
@@ -85,14 +85,15 @@ x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
             for yarrs in y_arrays]
 
 # x_arrays[0][0] -= 8000 * 60
+
 for a in x_arrays[1]:
     a *= 50000
 for a in x_arrays[2]:
     a *= 50000
 
-
-samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
-tied_plots = [True, True, True] # [False, False, False] #
+samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate * 2]
+# samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
+tied_plots = [True, True, True] # [False, False, False]
 p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
                                  tied_plots, x_arrays)
 

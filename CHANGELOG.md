@@ -40,11 +40,11 @@ Started dev
 
 * explicit x axis in plotter DONE
 
-* BUGFIX: shared axes share timestamps, but they should depend on the samplerate and x value only.
-  * Tried to use a custom formatter that looks into the axis, and add the samplerate attribute to the axis. But since multiple axes share the SAME xaxis, the xaxis->axes pointer points to the same axes, no matter where the signal comes from.
-  * Going up the tree extending classes to pass down the signal seems very cumbersome in comparison to the following method:
-  * Extend our xlim_changed callback to not only re-downsample but also do the job of the "shared" thing: update x limits for all shared (and individually instantiated) xaxes. The only problem could be side effects, so check if this makes sense
+* Allow pseudo-shared axes with different formatters DONE
 
+* Add widgets
+
+* Add multi-samplerate label support: right now different "samplerates" aren't really supported: we have to multiply the x axis and this ends up showing the wrong sample number on the x axis. Ideally, all samplerate/shared combinations are possible and accurate.
 
 * mvn processing facilities:
   * Fix timestamp

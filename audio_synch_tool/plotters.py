@@ -33,31 +33,6 @@ __author__ = "Andres FR"
 # ## HELPERS
 # #############################################################################
 
-class SamplerateFuncFormatter(plt.FuncFormatter):
-    """
-    The regular FuncFormatter calls our SampleToTimestampFormatter functor with
-    the ``(val, pos)`` signature. Crucially, it doesn't include information on
-    which axis is calling it, or any of the other attributes like sample rate.
-
-    Since axes that share the x-axis will also share the formatter, the regular
-    FuncFormatter makes impossible to have axes with different samplerates
-    being "aligned".
-
-    This class fixes it by calling the formatter with the
-    ``(val, pos, samplerate)`` signature.
-
-    References:
-    https://matplotlib.org/3.1.0/_modules/matplotlib/ticker.html#FuncFormatter
-    """
-    def __call__(self, x, pos=None):
-        """
-        Call self.func with a different signature.
-        """
-        # print(">>>>>", self.axis.__dict__.keys())
-        samplerate = self.axis.axes.samplerate
-        # print(">>>>>", self.axis.axes, samplerate)
-        return self.func(x, pos, samplerate)
-
 
 # #############################################################################
 # ## PLOTTER CLASSES
@@ -167,15 +142,15 @@ class MultipleDownsampledPlotter1D(object):
         # ranges can be tricky due to shared axes and multiple lines per
         # axis. First, find the (min, max) per axis. Then find the (min, max)
         # across all shared axes, and replace every shared range with it.
-        arr_maxranges = [(min([arr.x[0] for arr in arrs]),
-                          max([arr.x[-1] for arr in arrs]))
-                         for arrs in self.arrays]
-        shared_mins, shared_maxs = zip(*[arr_maxranges[i]
-                                         for i in self.shared_idxs])
-        shared_maxrange = (min(shared_mins), max(shared_maxs))
-        for i in self.shared_idxs:
-            arr_maxranges[i] = shared_maxrange
-        self.arr_maxranges = arr_maxranges
+        self.arr_maxranges = [(min([arr.x[0] for arr in arrs]),
+                               max([arr.x[-1] for arr in arrs]))
+                              for arrs in self.arrays]
+        if self.shared_idxs:
+            shared_mins, shared_maxs = zip(*[self.arr_maxranges[i]
+                                             for i in self.shared_idxs])
+            shared_maxrange = (min(shared_mins), max(shared_maxs))
+            for i in self.shared_idxs:
+                self.arr_maxranges[i] = shared_maxrange
 
     def make_fig(self):
         """
@@ -187,27 +162,19 @@ class MultipleDownsampledPlotter1D(object):
         # define and configure plt figure
         fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
         gs = list(gridspec.GridSpec(self.N, 1))
-        # first create non-shared axes
-        axes = [plt.subplot(gs[i]) for i in self.non_shared_idxs]
-
-        # then create the first shared, the rest with share with the first
-        if self.shared_idxs:
-            shared_axes = [plt.subplot(gs[self.shared_idxs[0]])]
-            for idx in self.shared_idxs[1:]:
-                shared_axes.insert(idx, plt.subplot(gs[idx],
-                                                    sharex=shared_axes[0]))
-            for idx, ax in zip(self.shared_idxs, shared_axes):
-                axes.insert(idx, ax)
-
+        axes = [plt.subplot(g) for g in gs]
+        shared_axes = {axes[i] for i in self.shared_idxs}
         # plots
         line_lists = [[ax.step(arr.x, arr.y, "-")[0] for arr in arrs]
                       for arrs, ax in zip(self.arrays, axes)]
-
-        # tricky part: tied axes must have tied callbacks. First create the
-        # independent functors
-        functors = [XlimCallbackFunctor(ax, lns, arrs, verbose=False)
+        # the callback handles downsampling and updating the shared axes.
+        # This isn't done by sharing the same x-axis since this wouldn't
+        # allow different axes with different samplerates to have different
+        # label formatters.
+        functors = [XlimCallbackFunctor(ax, lns, arrs, shared_axes,
+                                        verbose=False)
                     for ax, lns, arrs in zip(axes, line_lists, self.arrays)]
-        # and then replace the shared ones, if existing:
+        # collapse the shared functors, if existing:
         if self.shared_idxs:
             shared_f = SharedXlimCallbackFunctor(
                 [f for i, f in enumerate(functors) if i in self.shared_idxs])
@@ -237,42 +204,15 @@ class MultipleDownsampledPlotter1D(object):
 
             # optionally adapt labels to given sample rates
             if sr is not None:
-                f = SampleToTimestampFormatter(self.NUM_DECIMALS,
+                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
                                                self.SHOW_IDX)
-                ax.xaxis.set_major_formatter(SamplerateFuncFormatter(f))
+                ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
 
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(*ax_xrange)
-
-        for quack in axes:
-            f = quack.xaxis.get_major_formatter().axis.axes
-            print(quack.__repr__(), f.__repr__())
-            # print(">>>>>>>>>>>>>>>", f.samplerate, f(1000, 1000))
-
-
-
+        #
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
@@ -290,141 +230,3 @@ class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
         shared_plots = [True for _ in range(len(arrays))]
         #
         super().__init__(arrays, samplerates, max_datapoints, shared_plots)
-
-    def make_fig(self):
-        """
-        :returns: A matplotlib Figure containing the array given at
-          construction. The interactive plot of the figure will react
-          to the user's zooming by showing approximately
-          ``self.max_datapoints`` number of samples.
-        """
-        # define and configure plt figure
-        fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
-        gs = list(gridspec.GridSpec(self.N, 1))
-        # first create non-shared axes
-        axes = [plt.subplot(gs[i]) for i in self.non_shared_idxs]
-
-        # then create the first shared, the rest with share with the first
-        if self.shared_idxs:
-            shared_axes = [plt.subplot(gs[self.shared_idxs[0]])]
-            for idx in self.shared_idxs[1:]:
-                shared_axes.insert(idx, plt.subplot(gs[idx],
-                                                    sharex=shared_axes[0]))
-            for idx, ax in zip(self.shared_idxs, shared_axes):
-                axes.insert(idx, ax)
-
-        # plots
-        line_lists = [[ax.plot(arr.x, arr.y, "-")[0] for arr in arrs]
-                      for arrs, ax in zip(self.arrays, axes)]
-
-        # tricky part: tied axes must have tied callbacks. First create the
-        # independent functors
-        functors = [XlimCallbackFunctor(ax, lns, arrs) for ax, lns, arrs in
-                    zip(axes, line_lists, self.arrays)]
-        # and then replace the shared ones, if existing:
-        if self.shared_idxs:
-            shared_f = SharedXlimCallbackFunctor(
-                [f for i, f in enumerate(functors) if i in self.shared_idxs])
-            functors = [shared_f if i in self.shared_idxs else f
-                        for i, f in enumerate(functors)]
-
-        # configure axes ticks and labels
-        for ax, sr, fnc, length in zip(axes, self.samplerates, functors,
-                                       self.arr_maxlengths):
-            # set vertical grid
-            ax.xaxis.grid(True)
-
-            # number of x and y ticks
-            ax.locator_params(axis="x", nbins=self.NUM_XTICKS, integer=True)
-            ax.locator_params(axis="y", nbins=self.NUM_YTICKS)
-
-            # alignment, font and rotation of labels
-            plt.setp(ax.xaxis.get_majorticklabels(),
-                     rotation=self.TICK_ROT_DEG,
-                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
-            plt.setp(ax.yaxis.get_majorticklabels(),
-                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
-
-            # optionally adapt labels to given sample rates
-            if sr is not None:
-                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
-                                               self.SHOW_IDX)
-                ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
-
-            ax.callbacks.connect('xlim_changed', fnc)
-            ax.set_xlim(0, length)
-
-        fig.subplots_adjust(**self.FIG_MARGINS)
-        return fig
-
-
-# class AudioAndMvnPlotter(DownsampledPlotter1D):
-#     """
-#     """
-
-
-#     def __init__(self, arr, mvn, max_datapoints=10000, samplerate=None):
-#         """
-#         """
-#         super().__init__(arr, max_datapoints, samplerate)
-#         self.mvn = mvn
-
-#     # def make_fig(self, fig_title, audio_arr, total, x_shared):
-#     #     """
-#     #     """
-#     #     # define and configure plt figure
-#     #     fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
-#     #     gs = list(gridspec.GridSpec(total, 1))
-#     #     axes = [plt.subplot(gs[0])]
-#     #     # add shared-x axes
-#     #     axes += [plt.subplot(gsi, sharex=axes[0])
-#     #              for gsi in gs[1: x_shared]]
-#     #     # add remaining axes:
-#     #     axes += [plt.subplot(gsi) for gsi in gs[x_shared:]]
-
-#     #     #
-#     #     info = "\nNo. axes=%d, dep. axes=%d" % (total, x_shared)
-#     #     fig.suptitle(fig_title + info, fontsize=self.FIG_TITLE_FONTSIZE,
-#     #                  fontweight="bold")
-#     #     fig.canvas.set_window_title(fig_title)
-
-#     #     axes[0].plot(audio_arr)
-
-#     #     for ax in axes[1:]:
-#     #         ax.plot(range(10), range(10))
-#     #     fig.subplots_adjust(**self.FIG_MARGINS)
-#     #     return fig
-
-
-#     def make_fig(self, num_xticks=10, num_yticks=10, tick_fontsize=7):
-#         """
-#         :returns: A matplotlib Figure containing the array given at
-#           construction. The interactive plot of the figure will react
-#           to the user's zooming by showing approximately
-#           ``self.max_datapoints`` number of samples.
-
-#         Reference:
-#         https://matplotlib.org/3.1.0/gallery/event_handling/resample.html
-#         """
-#         fig, ax = plt.subplots()
-#         self.axx, = ax.plot(self.arange, self.arr, '-')
-#         # set number of ticks
-#         ax.locator_params(axis="x", nbins=num_xticks)
-#         ax.locator_params(axis="y", nbins=num_yticks)
-#         #
-#         ax.xaxis.tick_top()
-#         plt.setp(ax.xaxis.get_majorticklabels(), rotation=30,
-#                  fontsize=tick_fontsize, family="DejaVu Sans", ha="left")
-#         plt.setp(ax.yaxis.get_majorticklabels(),
-#                  fontsize=tick_fontsize, family="DejaVu Sans")
-#         ax.set_autoscale_on(False)  # Otherwise, infinite loop
-#         ax.callbacks.connect('xlim_changed', self._update_ax)
-#         ax.set_xlim(0, len(self.arr))
-#         ax.xaxis.grid(True)
-#         if self.samplerate is not None:
-#             f = plt.FuncFormatter(lambda val, pos:
-#                                   sample_to_timestamp_formatter(
-#                                       val, pos, self.samplerate))
-#             ax.xaxis.set_major_formatter(f)
-#         #
-#         return fig
