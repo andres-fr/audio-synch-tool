@@ -7,15 +7,16 @@
 
 # os+plt imports right after __future__
 # import os
-# import matplotlib as mpl
+import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
 #     print('no display found. Using non-interactive Agg backend')
-#     mpl.use('Agg')
+#     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-from matplotlib.widgets import Cursor
+from matplotlib.widgets import TextBox  # Button
+from matplotlib.backend_tools import ToolBase
 
-
+from .utils import resolve_path
 from .utils import DownsamplableFunction
 from .utils import SampleToTimestampFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
@@ -28,10 +29,122 @@ __author__ = "Andres FR"
 # ## GLOBALS
 # #############################################################################
 
+matplotlib.rcParams["toolbar"] = "toolmanager"
+
+def redefine_plt_shortcuts(fig, help_keys=["f1"], save_keys=["ctrl+s"]):
+    """
+    Some of them collide, some of them are unwanted. This function redefines
+    most of the ``matplotlib.rcParams`` entries.
+    """
+    rc = matplotlib.rcParams
+    #
+    if rc["toolbar"] == "toolmanager":
+        tm = fig.canvas.manager.toolbar.toolmanager
+        tm._keys = {}  # delete all preexisting mappings
+        for hk in help_keys:
+            tm._keys[hk] = "help"
+        for sk in save_keys:
+            tm._keys[sk] = "save"
+    else:
+        rc["keymap.all_axes"] = []  # ['a']
+        rc["keymap.back"] = []  # ['left', 'c', 'backspace']
+        rc["keymap.copy"] = []  # ['ctrl+c', 'cmd+c']
+        rc["keymap.forward"] = []  # ['right', 'v']
+        rc["keymap.fullscreen"] = []  # ['f', 'ctrl+f']
+        rc["keymap.grid"] = []  # ['g']
+        rc["keymap.grid_minor"] = []  # ['G']
+        rc["keymap.help"] = help_keys
+        rc["keymap.home"] = []  # ['h', 'r', 'home']
+        rc["keymap.pan"] = []  # ['p']
+        rc["keymap.quit"] = []  # ['ctrl+w', 'cmd+w', 'q']
+        rc["keymap.quit_all"] = []  # ['W', 'cmd+W', 'Q']
+        rc["keymap.save"] = save_keys  # ['s', 'ctrl+s']
+        rc["keymap.xscale"] = []  # ['k', 'L']
+        rc["keymap.yscale"] = []  # ['l']
+        rc["keymap.zoom"] = []  # ['o']
+
 
 # #############################################################################
 # ## HELPERS
 # #############################################################################
+
+def add_to_toolbar(fig, *widgets):
+    """
+    Adds a set of button-like widgets to the toolbar of a given figure.
+
+    :param fig: a ``plt.Figure``
+    :param *widgets: A number of class names that extend
+      ``mpl.backend_tools.ToolBase``. They must have at least defind the
+      ``name`` and ``tool_group`` fields.
+    """
+    # add widgets
+    manager = fig.canvas.manager
+    tm = manager.toolmanager
+    for w in widgets:
+        tm.add_tool(w.name, w)
+        manager.toolbar.add_tool(tm.get_tool(w.name), w.tool_group)
+
+# #############################################################################
+# ## WIDGETS
+# #############################################################################
+
+class SignalTransformButtons(ToolBase):
+    tool_group = "signal_transforms"
+    textbox = None
+
+
+class ShiftRightTool(SignalTransformButtons):
+    """
+    """
+    name = "shift_tool"
+    default_keymap = ""  # "ctrl+right"
+    description = "Shift grouped signals by the given amount"
+    image = resolve_path("data", "shift_right.png")
+
+    def trigger(self, *args, **kwargs):
+        """
+        """
+        print("!!!!!!!!!!!!", self.textbox.number)
+
+class StretchRightTool(SignalTransformButtons):
+    """
+    Stretch tied signals
+    """
+
+    name = "stretch_tool"
+    default_keymap = ""  # "ctrl+up"
+    description = "Stretch grouped signals by the given amount"
+    image = resolve_path("data", "stretch_out.png")
+
+    def trigger(self, *args, **kwargs):
+        """
+        """
+        print("%&&&&&&&&", self.textbox.number)
+
+
+class TextPrompt(TextBox):
+    """
+    """
+    AX_TITLE = "Type a number, press enter and click on the desired operation"
+    LABEL = ""
+    INITIAL_VAL = ""
+    def __init__(self, axis):
+        """
+        """
+        super().__init__(axis, self.LABEL, initial=self.INITIAL_VAL,
+                         label_pad=0.001)
+        self.on_submit(self._submit)
+        self.number = None
+        axis.set_title(self.AX_TITLE)
+        # self.on_text_change(lambda _: None)
+
+    def _submit(self, txt):
+        try:
+            self.number = float(txt)
+            print("textbox stored", self.number)
+        except ValueError:
+            print(txt, "is not a valid number! ignored...")
+            self.number = None
 
 
 # #############################################################################
@@ -66,6 +179,7 @@ class MultipleDownsampledPlotter1D(object):
     TICK_ROT_DEG = 15
     NUM_DECIMALS = 3
     SHOW_IDX = True
+    TEXTBOX_HEIGHT_RATIO = 0.22
     # FIG_ASPECT_RATIO = (10, 8)
     # FIG_MARGINS = {"top": 0.95, "bottom": 0.1, "left": 0.1, "right": 0.95,
     #                "hspace": 0.5, "wspace": 0.05}
@@ -152,17 +266,32 @@ class MultipleDownsampledPlotter1D(object):
             for i in self.shared_idxs:
                 self.arr_maxranges[i] = shared_maxrange
 
-    def make_fig(self):
+    def make_fig(self, textbox_widget=None, toolbar_widgets=[]):
         """
+        :param toolbar_widgets: must have a textbox attr!
+
         :returns: A matplotlib Figure containing the array given at
           construction. The interactive plot of the figure will react
           to the user's zooming by showing approximately
           ``self.max_datapoints`` number of samples.
         """
+        # XOR: either you give both or none!
+        if (textbox_widget is not None) ^ bool(toolbar_widgets):
+            raise AssertionError(
+                "either give both textbox and toolbar or none!")
+        #
+        hratios = [1 for _ in range(self.N)]
+        num_axes = self.N
+        if textbox_widget is not None:
+            num_axes += 2
+            hratios += [self.TEXTBOX_HEIGHT_RATIO]*2
+
         # define and configure plt figure
         fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
-        gs = list(gridspec.GridSpec(self.N, 1))
-        axes = [plt.subplot(g) for g in gs]
+        redefine_plt_shortcuts(fig)
+        gs = list(gridspec.GridSpec(num_axes, 1, height_ratios=hratios))
+        #
+        axes = [fig.add_subplot(g) for g in gs]
         shared_axes = {axes[i] for i in self.shared_idxs}
         # plots
         line_lists = [[ax.step(arr.x, arr.y, "-")[0] for arr in arrs]
@@ -211,22 +340,34 @@ class MultipleDownsampledPlotter1D(object):
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(*ax_xrange)
         #
+        if (textbox_widget is not None) and toolbar_widgets:
+            # create textbox
+            axes[-2].axis("off")
+            txtbox = textbox_widget(axes[-1])
+            setattr(fig, "txtbox", txtbox)
+            # add toolbar buttons and link them to textbox
+            add_to_toolbar(fig, *toolbar_widgets)
+            for w in toolbar_widgets:
+                w.textbox = txtbox
+
+
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
 
 
-class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
-    """
-    """
 
-    def __init__(self, audio_array, mvn_arrays, audio_samplerate,
-                 mvn_samplerate, max_datapoints=10000):
-        """
-        """
-        assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
-        #
-        arrays = [[audio_array]] +  mvn_arrays
-        samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
-        shared_plots = [True for _ in range(len(arrays))]
-        #
-        super().__init__(arrays, samplerates, max_datapoints, shared_plots)
+# class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
+#     """
+#     """
+
+#     def __init__(self, audio_array, mvn_arrays, audio_samplerate,
+#                  mvn_samplerate, max_datapoints=10000):
+#         """
+#         """
+#         assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
+#         #
+#         arrays = [[audio_array]] + mvn_arrays
+#         samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
+#         shared_plots = [True for _ in range(len(arrays))]
+#         #
+#         super().__init__(arrays, samplerates, max_datapoints, shared_plots)

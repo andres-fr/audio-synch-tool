@@ -12,6 +12,7 @@ import torch
 
 # from .utils import Timestamp
 from .plotters import MultipleDownsampledPlotter1D
+from .plotters import TextPrompt, ShiftRightTool, StretchRightTool
 from .mvn import Mvn
 
 __author__ = "Andres FR"
@@ -108,7 +109,9 @@ p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
 # p = AudioMvnSynchTool(wav_arr, mvn_arrays, audio_samplerate, mocap_samplerate,
 #                       MAX_SAMPLES_PLOTTED)
 
+textbox_widget = TextPrompt
+toolbar_widgets = ShiftRightTool, StretchRightTool
 
 
-fig = p.make_fig()
+fig = p.make_fig(textbox_widget, toolbar_widgets)
 plt.show()

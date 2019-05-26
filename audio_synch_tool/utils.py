@@ -4,9 +4,11 @@
 """
 """
 
-
+import os
 import datetime
 import torch
+#
+from . import __path__ as PACKAGE_ROOT_PATH  # path of the __init__ file
 
 
 __author__ = "Andres FR"
@@ -15,6 +17,25 @@ __author__ = "Andres FR"
 # #############################################################################
 # ## LOGIC
 # #############################################################################
+
+def resolve_path(*path_elements):
+    """
+    A convenience path wrapper to find elements in this package. Retrieves
+    the absolute path, given the OS-agnostic path relative to the package
+    root path (by bysically joining the path elements via ``os.path.join``).
+    E.g., the following call retrieves the absolute path for
+    ``<PACKAGE_ROOT>/a/b/test.txt``::
+
+       resolve_path("a", "b", "test.txt")
+
+    :params strings path_elements: From left to right, the path nodes,
+       the last one being the filename.
+    :rtype: str
+    """
+    p = tuple(PACKAGE_ROOT_PATH) + path_elements
+    return os.path.join(*p)
+
+
 
 class Timestamp(object):
     """
