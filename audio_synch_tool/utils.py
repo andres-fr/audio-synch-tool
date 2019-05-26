@@ -99,42 +99,41 @@ class Timestamp(object):
 
 class SampleToTimestampFormatter(object):
     """
-    This functor can be passed to ``plt.FuncFormatter`` to generate custom
-    tick labels. It fulfills the interface (val, pos) -> str.
+    This functor can be passed to ``SamplerateFuncFormatter`` to generate
+    custom tick labels. It fulfills the interface (val, pos, samplerate)->str.
 
     Specifically, converts ``val`` number representing a sample into a string
     showing the corresponding elapsed time since sample 0, asuming the given
     samplerate.
     Usage example::
 
-      ax.xaxis.set_major_formatter(plt.FuncFormatter(
+      ax.xaxis.set_major_formatter(SamplerateFuncFormatter(
                                    SampleToTimestampFormatter(sr)))
     """
-    def __init__(self, samplerate, num_decimals=3, show_idx=True):
+    def __init__(self, num_decimals=3, show_idx=True):
         """
-        :param number samplerate: A number so that seconds = val / samplerate
         :param int num_decimals: An integer between 0 and 6.
         :param bool show_idx: If true, the sample index will be also shown.
         :returns: A string in the form "{X days} h:m:s.ms"
         """
         assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
-        self.samplerate = samplerate
         self.num_decimals = num_decimals
         self._n_remove = 6 - num_decimals
         self.show_idx = show_idx
 
-    def __call__(self, val, pos):
+    def __call__(self, val, pos, samplerate):
         """
         :param number val: the axis value where the tick goes
         :param int pos: from 0 (left margin) to num_ticks+2 (right
           margin)
+        :param number samplerate: A number so that seconds = val / samplerate
         """
-        ts = Timestamp(val, self.samplerate)
+        ts = Timestamp(val, samplerate)
         ts_str = str(ts)
         if ts.microsecs > 0:
             ts_str = ts_str[: - self._n_remove]
         if self.show_idx:
-            if val.is_integer():
+            if isinstance(val, float) and val.is_integer():
                 val = int(val)
             ts_str = str(val) + " (" + ts_str + ")"
         return ts_str

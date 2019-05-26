@@ -72,13 +72,7 @@ mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
 
 
 
-# BUG: ZOOMING IN FOR ALTERED ARRAYS IS FISHY AF
-
-
-
 # plot
-
-
 y_arrays = [[wav_arr],
             [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
              mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
@@ -92,6 +86,8 @@ x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
 
 # x_arrays[0][0] -= 8000 * 60
 for a in x_arrays[1]:
+    a *= 50000
+for a in x_arrays[2]:
     a *= 50000
 
 

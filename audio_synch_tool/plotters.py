@@ -33,6 +33,31 @@ __author__ = "Andres FR"
 # ## HELPERS
 # #############################################################################
 
+class SamplerateFuncFormatter(plt.FuncFormatter):
+    """
+    The regular FuncFormatter calls our SampleToTimestampFormatter functor with
+    the ``(val, pos)`` signature. Crucially, it doesn't include information on
+    which axis is calling it, or any of the other attributes like sample rate.
+
+    Since axes that share the x-axis will also share the formatter, the regular
+    FuncFormatter makes impossible to have axes with different samplerates
+    being "aligned".
+
+    This class fixes it by calling the formatter with the
+    ``(val, pos, samplerate)`` signature.
+
+    References:
+    https://matplotlib.org/3.1.0/_modules/matplotlib/ticker.html#FuncFormatter
+    """
+    def __call__(self, x, pos=None):
+        """
+        Call self.func with a different signature.
+        """
+        # print(">>>>>", self.axis.__dict__.keys())
+        samplerate = self.axis.axes.samplerate
+        # print(">>>>>", self.axis.axes, samplerate)
+        return self.func(x, pos, samplerate)
+
 
 # #############################################################################
 # ## PLOTTER CLASSES
@@ -192,6 +217,9 @@ class MultipleDownsampledPlotter1D(object):
         # configure axes ticks and labels
         for ax, sr, fnc, ax_xrange in zip(axes, self.samplerates, functors,
                                           self.arr_maxranges):
+            # add samplerate to axis (needed by label formatter due to rigidity
+            # of the callback mechanism)
+            setattr(ax, "samplerate", sr)
             # set vertical grid
             ax.xaxis.grid(True)
 
@@ -209,12 +237,19 @@ class MultipleDownsampledPlotter1D(object):
 
             # optionally adapt labels to given sample rates
             if sr is not None:
-                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
+                f = SampleToTimestampFormatter(self.NUM_DECIMALS,
                                                self.SHOW_IDX)
-                ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
+                ax.xaxis.set_major_formatter(SamplerateFuncFormatter(f))
 
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(*ax_xrange)
+
+        for quack in axes:
+            f = quack.xaxis.get_major_formatter().axis.axes
+            print(quack.__repr__(), f.__repr__())
+            # print(">>>>>>>>>>>>>>>", f.samplerate, f(1000, 1000))
+
+
 
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
