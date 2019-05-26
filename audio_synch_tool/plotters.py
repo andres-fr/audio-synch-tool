@@ -13,6 +13,8 @@
 #     mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+from matplotlib.widgets import Cursor
+
 
 from .utils import DownsamplableFunction
 from .utils import SampleToTimestampFormatter
@@ -58,46 +60,203 @@ class MultipleDownsampledPlotter1D(object):
     FIG_ASPECT_RATIO = (10, 8)
     FIG_MARGINS = {"top": 0.95, "bottom": 0.1, "left": 0.1, "right": 0.95,
                    "hspace": 0.5, "wspace": 0.05}
+    TICK_FONTSIZE = 7
+    NUM_XTICKS = 15
+    NUM_YTICKS = 10
+    TICK_ROT_DEG = 15
+    NUM_DECIMALS = 3
+    SHOW_IDX = True
+    # FIG_ASPECT_RATIO = (10, 8)
+    # FIG_MARGINS = {"top": 0.95, "bottom": 0.1, "left": 0.1, "right": 0.95,
+    #                "hspace": 0.5, "wspace": 0.05}
+    # plt.rcParams["patch.force_edgecolor"] = True
+    # FIG_WIDTH_RATIOS = [5, 5]
+    # # FIG_HEIGHT_RATIOS = [10,3,10] # line, margin, line
+    # FIG_MARGINS = {"top":0.8, "bottom":0.2, "left":0.1, "right":0.9}
+    # FOR 1.0, THE AXIS WILL COVER EXACTLY UNTIL THE MAXIMUM
+    # RATIO_RANGE_AXIS = 1.15
+    # 0.05 MEANS THE DISTANCE BETWEEN BARS AND LABELS IS 5% OF THE AXIS
+    # RATIO_LABELS_DISTANCE = 0.02
+    # #
+    # FIG_TITLE_FONTSIZE = 15
+    # AX_TITLE_FONTSIZE = 18
+    # # TABLE_FONTSIZE = 9
+    # TICKS_FONTSIZE = 7
+    # CONFMAT_NUMBER_COLOR = "cyan"
+    # CONFMAT_NUMBER_FONTSIZE = 12
+    # NUM_YTICKS = 13
+    # LABELS_FONTSIZE = 12
+    # LEGEND_FONTSIZE = 15
+    # BAR_WIDTH = 0.85
+    # FPOS_COLOR = "#b0b000"
+    # FNEG_COLOR = "#e6194b"
 
-    def __init__(self, arrays, samplerates=None, max_datapoints=10000,
-                 shared_plots=None):
+    def __init__(self, y_arrays, samplerates=None, max_datapoints=10000,
+                 shared_plots=None, x_arrays=None):
         """
         """
-        #
-        self.N = len(arrays)
+        # check y arrays. Don't set it before checking x arrays!
+        self.N = len(y_arrays)
         assert self.N >= 1, "empty array list?"
-        # arrays is a "list of lists of arrays"
-        for arrs in arrays:
-            for arr in arrs:
-                assert len(arr.shape) == 1, "1D array expected!"
         assert max_datapoints > 0, "positive max_datapoints expected!"
+        # arrays is a "list of lists of arrays"
+        for yarrs in y_arrays:
+            for yarr in yarrs:
+                assert len(yarr.shape) == 1, "1D y_array expected!"
+        # check x arrays
+        if x_arrays is not None:
+            assert len(x_arrays) == self.N, \
+                "len(x_arrays) must be equal len(y_arrays)!"
+            for yarrs, xarrs in zip(y_arrays, x_arrays):
+                assert len(yarrs) == len(xarrs), \
+                    "len mismatch between x_arrays and y_arrays!"
+                for yarr, xarr in zip(yarrs, xarrs):
+                    assert len(xarr.shape) == 1, "1D x_array expected!"
+                    assert len(xarr) == len(yarr), \
+                        "len mismatch between x_array and y_array!"
+        else:  # if x arrays not given, set None
+            x_arrays = [[None for _ in y] for y in y_arrays]
+        # check remaining parameters
         if samplerates is not None:
-            assert len(samplerates) == len(arrays),\
+            assert len(samplerates) == len(y_arrays),\
                 "Number of samplerates must equal number of arrays!"
             for sr in samplerates:
                 if sr is not None:
                     assert sr > 0, "all samplerates must be positive!"
         if shared_plots is not None:
-            assert len(shared_plots) == len(arrays),\
+            assert len(shared_plots) == len(y_arrays),\
                 "Number of shared_plots must equal number of arrays!"
-        #
-        self.arrays = [[DownsamplableFunction(arr, max_datapoints)
-                        for arr in arrs]
-                       for arrs in arrays]
-        self.arr_maxlengths = [max([len(arr) for arr in arrs])
-                               for arrs in self.arrays]
+        # now values can be set
+        self.arrays = [[DownsamplableFunction(yarr, max_datapoints, xarr)
+                        for yarr, xarr in zip(yarrs, xarrs)]
+                       for yarrs, xarrs in zip(y_arrays, x_arrays)]
+        # these attributes are straightforward
         self.samplerates = ([None for _ in range(self.N)]
                             if samplerates is None else samplerates)
         self.shared_plots = ([False for _ in range(self.N)]
                              if shared_plots is None else shared_plots)
-
         self.shared_idxs = [idx for idx, b in enumerate(self.shared_plots)
                             if b]
         self.non_shared_idxs = [i for i in range(self.N)
                                 if i not in self.shared_idxs]
+        # ranges can be tricky due to shared axes and multiple lines per
+        # axis. First, find the (min, max) per axis. Then find the (min, max)
+        # across all shared axes, and replace every shared range with it.
+        arr_maxranges = [(min([arr.x[0] for arr in arrs]),
+                          max([arr.x[-1] for arr in arrs]))
+                         for arrs in self.arrays]
+        shared_mins, shared_maxs = zip(*[arr_maxranges[i]
+                                         for i in self.shared_idxs])
+        shared_maxrange = (min(shared_mins), max(shared_maxs))
+        for i in self.shared_idxs:
+            arr_maxranges[i] = shared_maxrange
+        self.arr_maxranges = arr_maxranges
 
-    def make_fig(self, num_xticks=15, num_yticks=10, tick_fontsize=7,
-                 tick_rot_deg=15, num_decimals=3, show_idx=True):
+    def make_fig(self):
+        """
+        :returns: A matplotlib Figure containing the array given at
+          construction. The interactive plot of the figure will react
+          to the user's zooming by showing approximately
+          ``self.max_datapoints`` number of samples.
+        """
+        # define and configure plt figure
+        fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
+        gs = list(gridspec.GridSpec(self.N, 1))
+        # first create non-shared axes
+        axes = [plt.subplot(gs[i]) for i in self.non_shared_idxs]
+
+        # then create the first shared, the rest with share with the first
+        if self.shared_idxs:
+            shared_axes = [plt.subplot(gs[self.shared_idxs[0]])]
+            for idx in self.shared_idxs[1:]:
+                shared_axes.insert(idx, plt.subplot(gs[idx],
+                                                    sharex=shared_axes[0]))
+            for idx, ax in zip(self.shared_idxs, shared_axes):
+                axes.insert(idx, ax)
+
+        # plots
+        line_lists = [[ax.step(arr.x, arr.y, "-")[0] for arr in arrs]
+                      for arrs, ax in zip(self.arrays, axes)]
+
+        # tricky part: tied axes must have tied callbacks. First create the
+        # independent functors
+        functors = [XlimCallbackFunctor(ax, lns, arrs, verbose=False)
+                    for ax, lns, arrs in zip(axes, line_lists, self.arrays)]
+        # and then replace the shared ones, if existing:
+        if self.shared_idxs:
+            shared_f = SharedXlimCallbackFunctor(
+                [f for i, f in enumerate(functors) if i in self.shared_idxs])
+            functors = [shared_f if i in self.shared_idxs else f
+                        for i, f in enumerate(functors)]
+
+        # configure axes ticks and labels
+        for ax, sr, fnc, ax_xrange in zip(axes, self.samplerates, functors,
+                                          self.arr_maxranges):
+            # set vertical grid
+            ax.xaxis.grid(True)
+
+            # number of x and y ticks
+            ax.locator_params(axis="x", nbins=self.NUM_XTICKS, integer=True)
+            ax.locator_params(axis="y", nbins=self.NUM_YTICKS)
+
+            # alignment, font and rotation of labels
+            plt.setp(ax.xaxis.get_majorticklabels(),
+                     rotation=self.TICK_ROT_DEG,
+                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans",
+                     ha="right")
+            plt.setp(ax.yaxis.get_majorticklabels(),
+                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
+
+            # optionally adapt labels to given sample rates
+            if sr is not None:
+                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
+                                               self.SHOW_IDX)
+                ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
+
+            ax.callbacks.connect('xlim_changed', fnc)
+            ax.set_xlim(*ax_xrange)
+
+        fig.subplots_adjust(**self.FIG_MARGINS)
+        return fig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
+    """
+    """
+
+    def __init__(self, audio_array, mvn_arrays, audio_samplerate,
+                 mvn_samplerate, max_datapoints=10000):
+        """
+        """
+        assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
+        #
+        arrays = [[audio_array]] +  mvn_arrays
+        samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
+        shared_plots = [True for _ in range(len(arrays))]
+        #
+        super().__init__(arrays, samplerates, max_datapoints, shared_plots)
+
+    def make_fig(self):
         """
         :returns: A matplotlib Figure containing the array given at
           construction. The interactive plot of the figure will react
@@ -141,18 +300,20 @@ class MultipleDownsampledPlotter1D(object):
             ax.xaxis.grid(True)
 
             # number of x and y ticks
-            ax.locator_params(axis="x", nbins=num_xticks, integer=True)
-            ax.locator_params(axis="y", nbins=num_yticks)
+            ax.locator_params(axis="x", nbins=self.NUM_XTICKS, integer=True)
+            ax.locator_params(axis="y", nbins=self.NUM_YTICKS)
 
             # alignment, font and rotation of labels
-            plt.setp(ax.xaxis.get_majorticklabels(), rotation=tick_rot_deg,
-                     fontsize=tick_fontsize, family="DejaVu Sans", ha="right")
+            plt.setp(ax.xaxis.get_majorticklabels(),
+                     rotation=self.TICK_ROT_DEG,
+                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
             plt.setp(ax.yaxis.get_majorticklabels(),
-                     fontsize=tick_fontsize, family="DejaVu Sans")
+                     fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
 
             # optionally adapt labels to given sample rates
             if sr is not None:
-                f = SampleToTimestampFormatter(sr, num_decimals, show_idx)
+                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
+                                               self.SHOW_IDX)
                 ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
 
             ax.callbacks.connect('xlim_changed', fnc)
@@ -165,30 +326,6 @@ class MultipleDownsampledPlotter1D(object):
 # class AudioAndMvnPlotter(DownsampledPlotter1D):
 #     """
 #     """
-#     # plt.rcParams["patch.force_edgecolor"] = True
-#     FIG_ASPECT_RATIO = (10, 8)
-#     # FIG_WIDTH_RATIOS = [5, 5]
-#     # # FIG_HEIGHT_RATIOS = [10,3,10] # line, margin, line
-#     # FIG_MARGINS = {"top":0.8, "bottom":0.2, "left":0.1, "right":0.9}
-#     FIG_MARGINS = {"top": 0.8, "bottom": 0.05, "left": 0.05, "right": 0.95,
-#                    "hspace": 0.5, "wspace": 0.5}
-#     # FOR 1.0, THE AXIS WILL COVER EXACTLY UNTIL THE MAXIMUM
-#     # RATIO_RANGE_AXIS = 1.15
-#     # 0.05 MEANS THE DISTANCE BETWEEN BARS AND LABELS IS 5% OF THE AXIS
-#     # RATIO_LABELS_DISTANCE = 0.02
-#     # #
-#     FIG_TITLE_FONTSIZE = 15
-#     # AX_TITLE_FONTSIZE = 18
-#     # # TABLE_FONTSIZE = 9
-#     TICKS_FONTSIZE = 7
-#     # CONFMAT_NUMBER_COLOR = "cyan"
-#     # CONFMAT_NUMBER_FONTSIZE = 12
-#     # NUM_YTICKS = 13
-#     # LABELS_FONTSIZE = 12
-#     # LEGEND_FONTSIZE = 15
-#     # BAR_WIDTH = 0.85
-#     # FPOS_COLOR = "#b0b000"
-#     # FNEG_COLOR = "#e6194b"
 
 
 #     def __init__(self, arr, mvn, max_datapoints=10000, samplerate=None):

@@ -11,7 +11,7 @@ import soundfile as sf
 import torch
 
 # from .utils import Timestamp
-from .plotters import MultipleDownsampledPlotter1D
+from .plotters import AudioMvnSynchTool, MultipleDownsampledPlotter1D
 from .mvn import Mvn
 
 __author__ = "Andres FR"
@@ -69,17 +69,49 @@ frame_sequences = mocap.get_normalframe_sequences("cpu")
 mocap_accelerations_3d = frame_sequences["acceleration"]
 mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
 
+
+
+
+# BUG: ZOOMING IN FOR ALTERED ARRAYS IS FISHY AF
+
+
+
 # plot
-arrays = [[wav_arr],
-          [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-           mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-           mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-          [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-           mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-           mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+
+
+y_arrays = [[wav_arr],
+            [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+            [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+
+x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
+            for yarrs in y_arrays]
+
+# x_arrays[0][0] -= 8000 * 60
+for a in x_arrays[1]:
+    a *= 50000
+
+
 samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
-tied_plots = [False, True, True]
-p = MultipleDownsampledPlotter1D(arrays, samplerates, MAX_SAMPLES_PLOTTED,
-                                 tied_plots)
+tied_plots = [True, True, True] # [False, False, False] #
+p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
+                                 tied_plots, x_arrays)
+
+
+# mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+#                mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+#                mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+#               [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+#                mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+#                mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+
+# p = AudioMvnSynchTool(wav_arr, mvn_arrays, audio_samplerate, mocap_samplerate,
+#                       MAX_SAMPLES_PLOTTED)
+
+
+
 fig = p.make_fig()
 plt.show()

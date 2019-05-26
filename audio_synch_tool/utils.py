@@ -145,42 +145,61 @@ class DownsamplableFunction(object):
     Encapsulates the downsampling functionality to prevent side effects,
     and reduce code verbosity in plotter.
     """
-    def __init__(self, arr, max_datapoints):
+    def __init__(self, y_arr, max_datapoints, x_arr=None):
         """
         Given an array representing a function, the original x and y values can
         be accessed via ``self.x, self.y``, and the downsampled values via
         ``self.downsampled(xstart, xend)``.
 
-        :param arr: A non-empty, one-dimensional array
+        :param y_arr: A non-empty, one-dimensional array representing the
+          y values of the function
         :param int max_datapoints: A positive number. See docstring for
           the downsampled method.
+        :param x_arr: A non-empty, one-dimensional array representing the
+          x values of the function. If None, it is assumed that it
+          starts on 0 and increments by 1.
+
+        .. note::
+
+          The x-array will be sorted in ascending order.
         """
-        assert len(arr.shape) == 1, "Only 1D arrays expected!"
         assert max_datapoints > 0, "max_datapoints must be positive!"
-        self._len = len(arr)
-        assert self._len > 0, "Empty array?"
-        self.y = arr
-        self.x = torch.arange(self._len).numpy()
+        assert len(y_arr.shape) == 1, "Only 1D arrays expected!"
+        self._len_y = len(y_arr)
+        assert self._len_y > 0, "Empty array?"
+        self.y = y_arr
+        #
+        if x_arr is not None:
+            assert len(x_arr.shape) == 1, "Only 1D arrays expected!"
+            self._len_x = len(x_arr)
+            assert self._len_x == self._len_y, "len(x) must equal len(y)!"
+            self.x = torch.Tensor(x_arr).sort()[0].numpy()
+        else:
+            self.x = torch.arange(self._len_y).numpy()
+            self._len_x = self._len_y
         self.max_datapoints = max_datapoints
 
     def __len__(self):
-        return self._len
+        return self._len_y
 
-    def downsampled(self, xstart, xend):
+    def downsampled(self, xstart, xend, verbose=False):
         """
         This function performs downsampling by reading one sample every
         ``(xend-xstart)//max_datapoints`` from x_vals and y_vals.
         """
         assert xstart <= xend, "malformed downsampling range!"
         #
-        start = int(max(xstart, 0))
-        end = int(min(xend, self._len))
-        ratio = int(max(1, (end - start) // self.max_datapoints))
+        start = int(max(xstart, self.x[0]))
+        end = int(min(xend, self.x[-1]))
+        start_idx = self.x.searchsorted(start)
+        end_idx = self.x.searchsorted(end)
+        ratio = int(max(1, (end_idx - start_idx) // self.max_datapoints))
         #
-        x_down = self.x[start:end + 1:ratio]
-        y_down = self.y[start:end + 1:ratio]
+        x_down = self.x[start_idx:end_idx + 1:ratio]
+        y_down = self.y[start_idx:end_idx + 1:ratio]
         #
-        print("using", x_down.shape[0], "points")
+        if verbose:
+            print("using", x_down.shape[0], "points")
         return x_down, y_down
 
 
@@ -194,13 +213,14 @@ class XlimCallbackFunctor(object):
                        DownsamplingCallbackFunctor(ax, [line1..], [arr1...]))``
     """
 
-    def __init__(self, axis, lines, arrays):
+    def __init__(self, axis, lines, arrays, verbose=False):
         """
         """
         self.ax = axis
         assert len(lines) == len(arrays), "error: len(lines) != len(arrays)"
         self.lines = lines
         self.arrays = arrays
+        self.verbose = verbose
 
     def __call__(self, ax_limits):
         """
@@ -210,7 +230,7 @@ class XlimCallbackFunctor(object):
         lims = ax_limits.viewLim
         xstart, xend = lims.intervalx
         for l, a in zip(self.lines, self.arrays):
-            l.set_data(*a.downsampled(xstart, xend))
+            l.set_data(*a.downsampled(xstart, xend, self.verbose))
         self.ax.figure.canvas.draw_idle()
 
 
