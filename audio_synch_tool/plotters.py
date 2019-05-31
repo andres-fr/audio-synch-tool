@@ -350,24 +350,26 @@ class MultipleDownsampledPlotter1D(object):
             for w in toolbar_widgets:
                 w.textbox = txtbox
 
-
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
 
 
 
-# class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
-#     """
-#     """
+class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
+    """
+    """
 
-#     def __init__(self, audio_array, mvn_arrays, audio_samplerate,
-#                  mvn_samplerate, max_datapoints=10000):
-#         """
-#         """
-#         assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
-#         #
-#         arrays = [[audio_array]] + mvn_arrays
-#         samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
-#         shared_plots = [True for _ in range(len(arrays))]
-#         #
-#         super().__init__(arrays, samplerates, max_datapoints, shared_plots)
+    def __init__(self, audio_array, mvn_arrays, audio_samplerate,
+                 mvn_samplerate, max_datapoints=10000):
+        """
+        """
+        assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
+        #
+        arrays = [[audio_array]] + mvn_arrays
+        samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
+        shared_plots = [True for _ in range(len(arrays))]
+        #
+        super().__init__(arrays, samplerates, max_datapoints, shared_plots)
+
+    def make_fig(self):
+        super().make_fig(TextPrompt, [ShiftRightTool, StretchRightTool])
