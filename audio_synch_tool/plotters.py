@@ -473,7 +473,3 @@ class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
     def make_fig(self):
         super().make_fig()
         # super().make_fig(self.TEXTBOX_WIDGET_CLASS, self.TOOLBAR_BUTTON_CLASSES)
-
-
-
-# p = AudioMvnSynchTool(wav_arr, audio_samplerate, mvn, MAX_SAMPLES_PLOTTED)
