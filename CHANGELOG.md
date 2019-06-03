@@ -44,12 +44,16 @@ Started dev
 
 * Add widgets DONE
 
-* Add multi-samplerate label support: right now different "samplerates" aren't really supported: we have to multiply the x axis and this ends up showing the wrong sample number on the x axis. Ideally, all samplerate/shared combinations are possible and accurate. right now the MVN signal is "adapted" to the audio freq. the buttons shift all the signals because they grab the "shared" listeners... this is also messy. need a plan to proceed further!
+* PLAN: the whole integral GUI thing will take too much time. make 2 variants, one for check and other for measure, and a small CLI that allows to "set" the `audio_sample` field for an MVN given 2 anchor points.
+
+
+
+* Add multi-samplerate label support: right now different "samplerates" aren't really supported: we have to multiply the x axis and this ends up showing the wrong sample number on the x axis. Ideally, all samplerate/shared combinations are possible and accurate. right now the MVN signal is "adapted" to the audio freq. the buttons shift all the signals because they grab the "shared" listeners... this is also messy.x need a plan to proceed further!
 
 * mvn processing facilities:
   * serialization DONE
   * Fix timestamp
-  * Shift and stretch
+  * Shift and stretch DONE (through set and get `audio_sample` field)
 
 
 ### low priority

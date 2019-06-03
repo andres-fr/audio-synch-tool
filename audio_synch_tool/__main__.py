@@ -11,7 +11,7 @@ import soundfile as sf
 import torch
 
 # from .utils import Timestamp
-from .plotters import MultipleDownsampledPlotter1D, AudioMvnSynchTool
+from .plotters import MultipleDownsampledPlotter1D, AudioMvnSynchToolModifier, AudioMvnSynchToolChecker
 from .plotters import TextPrompt, ShiftRightTool, StretchRightTool
 from .mvn import Mvn
 
@@ -73,7 +73,7 @@ frame_sequences = mocap.extract_normalframe_sequences(frames_metadata,
 mocap_accelerations_3d = frame_sequences["acceleration"]
 mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
 
-mocap.set_audio_synch(10000, 2000000)
+# mocap.set_audio_synch(10000, 2000000)
 # mocap.export("quack.asdf", extra_comment="Bound to audio file XYZ")
 # input("asdfasdf")
 
@@ -102,7 +102,9 @@ mocap.set_audio_synch(10000, 2000000)
 #                       mocap_samplerate, MAX_SAMPLES_PLOTTED)
 
 # mocap.set_audio_synch(10000, 2000000)
-p = AudioMvnSynchTool(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+# p = AudioMvnSynchTool(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+
+p = AudioMvnSynchToolModifier(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
 
 # textbox_widget = TextPrompt
 # toolbar_widgets = ShiftRightTool, StretchRightTool
