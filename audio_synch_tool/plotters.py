@@ -16,11 +16,13 @@ from matplotlib import gridspec
 from matplotlib.widgets import TextBox  # Button
 from matplotlib.backend_tools import ToolBase
 
+import torch
+
 from .utils import resolve_path
 from .utils import DownsamplableFunction
-from .utils import SampleToTimestampFormatter
+from .utils import SampleToTimestampFormatter, ProportionalFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
-
+from .mvn import Mvn
 
 __author__ = "Andres FR"
 
@@ -60,7 +62,7 @@ def redefine_plt_shortcuts(fig, help_keys=["f1"], save_keys=["ctrl+s"]):
         rc["keymap.quit_all"] = []  # ['W', 'cmd+W', 'Q']
         rc["keymap.save"] = save_keys  # ['s', 'ctrl+s']
         rc["keymap.xscale"] = []  # ['k', 'L']
-        rc["keymap.yscale"] = []  # ['l']
+        rc["keymap.yscale"] = []  #
         rc["keymap.zoom"] = []  # ['o']
 
 
@@ -89,8 +91,12 @@ def add_to_toolbar(fig, *widgets):
 # #############################################################################
 
 class SignalTransformButtons(ToolBase):
+    """
+    The class attribute ``plotter`` has to be set to point to an instance of
+    ``plt.Figure`` at some point before usage.
+    """
     tool_group = "signal_transforms"
-    textbox = None
+    fig = None
 
 
 class ShiftRightTool(SignalTransformButtons):
@@ -98,13 +104,32 @@ class ShiftRightTool(SignalTransformButtons):
     """
     name = "shift_tool"
     default_keymap = ""  # "ctrl+right"
-    description = "Shift grouped signals by the given amount"
+    description = "Shift all but the first signal by the given amount"
     image = resolve_path("data", "shift_right.png")
 
     def trigger(self, *args, **kwargs):
         """
         """
-        print("!!!!!!!!!!!!", self.textbox.number)
+        textbox_number = self.fig.textbox.number
+        if textbox_number is not None:
+            print("Shifting by", textbox_number)
+            for shared_fctr in self.fig.functors[1:]:
+                for f in shared_fctr.functors:
+                    for arr in f.arrays:
+                        arr.x += textbox_number
+                    f(f.ax)
+
+        #     mvn_arrs = self.fig.plotter.arrays[1:]
+        #     for arrs in mvn_arrs:
+        #         for a in arrs:
+        #             a.x += textbox_number
+        #     self.fig.canvas.draw_idle()
+
+
+        # for asdf in self.fig.functors[1:]:
+        #     for ff in asdf.functors:
+        #         for aasdf in ff.arrays:
+        #             print("      !!>>>>>", aasdf.x[-1])
 
 class StretchRightTool(SignalTransformButtons):
     """
@@ -113,13 +138,13 @@ class StretchRightTool(SignalTransformButtons):
 
     name = "stretch_tool"
     default_keymap = ""  # "ctrl+up"
-    description = "Stretch grouped signals by the given amount"
+    description = "Stretch all but the first signal by the given amount"
     image = resolve_path("data", "stretch_out.png")
 
     def trigger(self, *args, **kwargs):
         """
         """
-        print("%&&&&&&&&", self.textbox.number)
+        print("%&&&&&&&&", self.fig.textbox.number)
 
 
 class TextPrompt(TextBox):
@@ -206,7 +231,7 @@ class MultipleDownsampledPlotter1D(object):
     # FNEG_COLOR = "#e6194b"
 
     def __init__(self, y_arrays, samplerates=None, max_datapoints=10000,
-                 shared_plots=None, x_arrays=None):
+                 shared_plots=None, x_arrays=None, xtick_formatters=None):
         """
         """
         # check y arrays. Don't set it before checking x arrays!
@@ -240,6 +265,9 @@ class MultipleDownsampledPlotter1D(object):
         if shared_plots is not None:
             assert len(shared_plots) == len(y_arrays),\
                 "Number of shared_plots must equal number of arrays!"
+        if xtick_formatters is not None:
+            assert len(xtick_formatters) == len(y_arrays),\
+                "Number of xtick_formatters must equal number of arrays!"
         # now values can be set
         self.arrays = [[DownsamplableFunction(yarr, max_datapoints, xarr)
                         for yarr, xarr in zip(yarrs, xarrs)]
@@ -249,6 +277,9 @@ class MultipleDownsampledPlotter1D(object):
                             if samplerates is None else samplerates)
         self.shared_plots = ([False for _ in range(self.N)]
                              if shared_plots is None else shared_plots)
+        self.xtick_formatters = ([None for _ in range(self.N)]
+                                 if xtick_formatters is None
+                                 else xtick_formatters)
         self.shared_idxs = [idx for idx, b in enumerate(self.shared_plots)
                             if b]
         self.non_shared_idxs = [i for i in range(self.N)
@@ -268,7 +299,9 @@ class MultipleDownsampledPlotter1D(object):
 
     def make_fig(self, textbox_widget=None, toolbar_widgets=[]):
         """
-        :param toolbar_widgets: must have a textbox attr!
+        :param toolbar_widgets: A list of class names of type
+          SignalTransformButtons. Must include a ``fig`` attribute, which
+          will be automatically set to be the Figure returned by this method.
 
         :returns: A matplotlib Figure containing the array given at
           construction. The interactive plot of the figure will react
@@ -288,6 +321,7 @@ class MultipleDownsampledPlotter1D(object):
 
         # define and configure plt figure
         fig = plt.figure(figsize=self.FIG_ASPECT_RATIO)
+        setattr(fig, "plotter", self)
         redefine_plt_shortcuts(fig)
         gs = list(gridspec.GridSpec(num_axes, 1, height_ratios=hratios))
         #
@@ -311,8 +345,9 @@ class MultipleDownsampledPlotter1D(object):
                         for i, f in enumerate(functors)]
 
         # configure axes ticks and labels
-        for ax, sr, fnc, ax_xrange in zip(axes, self.samplerates, functors,
-                                          self.arr_maxranges):
+        for ax, sr, fnc, ax_xrange, frmtr in zip(axes, self.samplerates, functors,
+                                          self.arr_maxranges,
+                                          self.xtick_formatters):
             # add samplerate to axis (needed by label formatter due to rigidity
             # of the callback mechanism)
             setattr(ax, "samplerate", sr)
@@ -332,42 +367,113 @@ class MultipleDownsampledPlotter1D(object):
                      fontsize=self.TICK_FONTSIZE, family="DejaVu Sans")
 
             # optionally adapt labels to given sample rates
-            if sr is not None:
-                f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
-                                               self.SHOW_IDX)
-                ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
+            if frmtr is not None:
+                ax.xaxis.set_major_formatter(plt.FuncFormatter(frmtr))
+            # if sr is not None:
+            #     f = SampleToTimestampFormatter(sr, self.NUM_DECIMALS,
+            #                                    self.SHOW_IDX)
+            #     ax.xaxis.set_major_formatter(plt.FuncFormatter(f))
 
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(*ax_xrange)
         #
         if (textbox_widget is not None) and toolbar_widgets:
+            for tw in toolbar_widgets:
+                assert issubclass(tw, SignalTransformButtons), \
+                    "All toolbar_widgets must be of type SignalTransformButtons"
             # create textbox
             axes[-2].axis("off")
-            txtbox = textbox_widget(axes[-1])
-            setattr(fig, "txtbox", txtbox)
+            textbox = textbox_widget(axes[-1])
+            # more monkey patching
+            setattr(fig, "textbox", textbox)
+            setattr(fig, "functors", functors)
             # add toolbar buttons and link them to textbox
             add_to_toolbar(fig, *toolbar_widgets)
             for w in toolbar_widgets:
-                w.textbox = txtbox
-
-
+                w.fig = fig
+        #
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
 
+class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
+    """
+    """
+    TEXTBOX_WIDGET_CLASS = TextPrompt
+    TOOLBAR_BUTTON_CLASSES = [ShiftRightTool, StretchRightTool]
+
+    def __init__(self, audio_array, audio_samplerate, mvn,
+                 max_datapoints=10000):
+        """
+        """
+        assert isinstance(mvn, Mvn), "mvn must be an instance of Mvn!"
+        self.mvn = mvn
+        # get mvn samplerate and our desired y arrays
+        self.mvn_samplerate = float(mvn.mvn.subject.attrib["frameRate"])
+        mvn_arrays = self._get_mvn_arrays()
+        y_arrays = [[audio_array]] + mvn_arrays
+        # x-array for audio is trivial
+        x_audio = torch.arange(len(audio_array)).type(torch.float64).numpy()
+        # x-array for mvn: if no pre-synched entries use frame indexes.
+        x_mvn = self.mvn.get_audio_synch()
+        if x_mvn is None:
+            x_mvn = [int(f.attrib["index"])
+                     for f in self.mvn.mvn.subject.frames.getchildren()
+                     if f.attrib["type"] == "normal"]
+            # print(x_audio[0], x_audio[-1])
+            # x_mvn = self.mvn.set_audio_synch(0, len(x_audio))
+            # x_mvn = self.mvn.get_audio_synch()
+        x_mvn = torch.Tensor(x_mvn).numpy()
+
+        # bundle plotter inputs:
+        x_arrays = [[x_audio]] + [[x_mvn for a in arrs] for arrs in mvn_arrays]
+        samplerates = [audio_samplerate for _ in y_arrays]
+        shared_plots = [True for _ in range(len(y_arrays))]
+        # xtick_formatters = [SampleToTimestampFormatter(audio_samplerate,
+        #                                                self.NUM_DECIMALS,
+        #                                                self.SHOW_IDX),
+        #                     ProportionalFormatter(2, self.NUM_DECIMALS),
+        #                     ProportionalFormatter(1.5, self.NUM_DECIMALS)]
+        xtick_formatters = [SampleToTimestampFormatter(audio_samplerate,
+                                                       self.NUM_DECIMALS,
+                                                       self.SHOW_IDX),
+                            None, None]
+        # call plotter
+        super().__init__(y_arrays, samplerates, max_datapoints, shared_plots,
+                         x_arrays, xtick_formatters)
+
+        # x_arrays = [[torch.arange(len(yarr)).type(torch.float64).numpy()
+        #              for yarr in yarrs]
+        #             for yarrs in y_arrays]
+        # # modify mvn x-arrays
+        # sr_ratio = float(audio_samplerate) / self.mvn_samplerate
+        # for xarrs in x_arrays[1:]:
+        #     for xa in xarrs:
+        #         xa *= sr_ratio
+        # ### samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
+    def _get_mvn_arrays(self):
+        """
+        """
+        # extract info from mocap
+        mocap_segments = self.mvn.extract_segments()
+        frames_metadata, _, normal_frames = self.mvn.extract_frame_info()
+        frame_sequences = self.mvn.extract_normalframe_sequences(
+            frames_metadata, normal_frames, "cpu")
+        mocap_accelerations_3d = frame_sequences["acceleration"]
+        mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        #
+        mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+                       mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+                       mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+                      [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+                       mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+                       mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+        return mvn_arrays
 
 
-# class AudioMvnSynchTool(MultipleDownsampledPlotter1D):
-#     """
-#     """
+    def make_fig(self):
+        super().make_fig()
+        # super().make_fig(self.TEXTBOX_WIDGET_CLASS, self.TOOLBAR_BUTTON_CLASSES)
 
-#     def __init__(self, audio_array, mvn_arrays, audio_samplerate,
-#                  mvn_samplerate, max_datapoints=10000):
-#         """
-#         """
-#         assert isinstance(mvn_arrays, list), "mvn_arrays must be of type list!"
-#         #
-#         arrays = [[audio_array]] + mvn_arrays
-#         samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
-#         shared_plots = [True for _ in range(len(arrays))]
-#         #
-#         super().__init__(arrays, samplerates, max_datapoints, shared_plots)
+
+
+# p = AudioMvnSynchTool(wav_arr, audio_samplerate, mvn, MAX_SAMPLES_PLOTTED)

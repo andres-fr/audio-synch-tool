@@ -189,6 +189,7 @@
 			<xsd:attribute name="tc" type="xsd:string"/>
 			<xsd:attribute name="ms" type="xsd:string"/>
 			<xsd:attribute name="type" type="xsd:string" use="required"/>
+                        <xsd:attribute name="audio_sample" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 	

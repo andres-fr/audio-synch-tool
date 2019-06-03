@@ -3,11 +3,15 @@
 
 """
 This module contains functionality concerning the adaption of the
-XSENS MVN format into our Python setup.
+XSENS MVN-XML format into our Python setup.
 
+The official explanation can be found in section 14.4 of this document::
+  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf
 
-The following section introduces the contents of the imported MVN file and the
-way they can be accessed from Python::
+A copy is stored in this repository.
+
+The following section introduces more informally the contents of the imported
+MVN file and the way they can be accessed from Python::
 
   # load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd
   MVN_SCHEMA_PATH = "xxx"
@@ -77,15 +81,22 @@ The following fields contain metadata about the frame:
 
 # The following fields are float vectors of the following dimensionality:
 
-:orientation: ``segmentCount*4 = 92``
+:orientation: ``segmentCount*4 = 92`` Quaternion vector
 :position, velocity, acceleration, angularVelocity, angularAcceleration:
-  ``segmentCount*3 = 69``
-:footContacts: ``4``
+  ``segmentCount*3 = 69`` 3D vectors in ``(x,y,z)`` format
+:footContacts: ``4`` 4D boolean vector
 :sensorFreeAcceleration, sensorMagneticField: ``sensorCount*3 = 51``
 :sensorOrientation: ``sensorCount*4 = 68``
 :jointAngle, jointAngleXZY: ``jointCount*3 = 66``
 :jointAngleErgo: ``12``
 :centerOfMass: ``3``
+
+The units are SI for position, velocity and acceleration. Angular magnitudes
+are in radians except the ``jointAngle...`` ones that are in degrees. All 3D
+vectors are in ``(x,y,z)`` format, but the ``jointAngle...`` ones differ in
+the Euler-rotation order by which they are computed (ZXY, standard or XZY,
+for shoulders usually).
+
 """
 
 
@@ -94,7 +105,7 @@ __author__ = "Andres FR"
 
 import torch
 from lxml import etree, objectify  # https://lxml.de/validation.html
-
+from .utils import make_timestamp
 
 # #############################################################################
 # ## GLOBALS
@@ -119,24 +130,99 @@ class Mvn(object):
           schema to validate the XML file in mvn_path. If None, validation is
           skipped and this part ignored.
         """
+        self.mvn_path = mvn_path
+        self.schema_path = schema_path
+        #
         mvn = etree.parse(mvn_path)
         # if a schema is given, load it and validate mvn
-        self.schema_path = schema_path
         if schema_path is not None:
             self.schema = etree.XMLSchema(file=schema_path)
-            assert self.schema.validate(mvn),\
-                "[Mvn]: Given schema didn't validate given mvn!"
+            self.schema.assertValid(mvn)
         #
         self.mvn = objectify.fromstring(etree.tostring(mvn))
-        f_meta, config_f, normal_f = self._extract_mvn_frames(self.mvn)
-        self.frames_metadata = f_meta
-        self.config_frames = config_f
-        self.normal_frames = normal_f
-        #
-        assert (int(self.frames_metadata["segmentCount"]) ==
-                len(self.get_segments())), "Inconsistent segmentCount?"
 
-    def _extract_mvn_frames(self, mvn):
+    def export(self, filepath, pretty_print=True, extra_comment=""):
+        """
+        Saves the current ``mvn`` attribute to the given file path as XML and
+        adds the ``self.mvn.comment.attrib["export_details"]`` attribute with
+        a timestamp.
+        """
+        #
+        with open(filepath, "w") as f:
+            msg = "Exported from %s on %s. " % (
+                self.__class__.__name__, make_timestamp()) + extra_comment
+            self.mvn.comment = objectify.DataElement(msg, _pytype="")
+            s = etree.tostring(self.mvn,
+                               pretty_print=pretty_print).decode("utf-8")
+            f.write(s)
+            print("[Mvn] exported to", filepath)
+
+    def set_audio_synch(self, first_match, last_match):
+        """
+        Given the range of an audio file that this Mvn is expected to cover,
+        this function will set the ``audio_sample`` attribute of each "normal"
+        frame, where the first frame will contain first_match, the last
+        will contain last_match and the rest will be linearly interpolated and
+        rounded to the nearest integer.
+
+        :param int first_match: The sample number in the audio file that
+          corresponds to the first frame
+        :param int last_match: The sample number in the audio file that
+          corresponds to the last frame
+        """
+        assert isinstance(first_match, int), "first_match has to be int!"
+        assert isinstance(last_match, int), "last_match has to be int!"
+        normal_frames = [f for f in self.mvn.subject.frames.getchildren()
+                         if f.attrib["type"] == "normal"]
+        synch_values = torch.linspace(first_match, last_match,
+                                      len(normal_frames)).round()
+        time_check = float(normal_frames[0].attrib["time"])
+        index_check = float(normal_frames[0].attrib["index"])
+        for f, sv in zip(normal_frames, synch_values):
+            # make sure that the sequence is in ascending order, otherwise
+            # linspace will be inconsistent with the sequence
+            this_time, this_idx = float(f.attrib["time"]), float(f.attrib["index"])
+            assert this_time >= time_check, \
+                "Ill-formed sequence, 'time' attrib not sorted?"  + str((this_time, time_check))
+            assert this_idx >= index_check, \
+                "Ill-formed sequence, 'index' attrib not sorted?" + str((this_idx, index_check))
+            time_check, index_check = (this_time, this_idx)
+            # if it is good, set the attribute:
+            # f.attrib["time"] = str(int(f.attrib["time"]) + 100000000)
+            f.attrib["audio_sample"] = str(int(sv))
+
+    def get_audio_synch(self):
+        """
+        :returns: a list with the ``audio_sample`` attributes for the
+          normal frames, or None if there is at least 1 normal frame without
+          the ``audio_sample`` attribute. Note that this function assumes that
+          the entries are integers in the form '123', so they are retrieved
+          int(x). If that is not the case, they may be truncated or even throw
+          an exception.
+        """
+        try:
+            return [int(f.attrib["audio_sample"])
+                      for f in self.mvn.subject.frames.getchildren()
+                      if f.attrib["type"] == "normal"]
+        except KeyError:
+            return None
+
+    # EXTRACTORS: LIKE "GETTERS" BUT RETURN A MODIFIED COPY OF THE CONTENTS
+    def extract_frame_info(self):
+        """
+        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``.
+        """
+        f_meta, config_f, normal_f = self.extract_frames(self.mvn)
+        frames_metadata = f_meta
+        config_frames = config_f
+        normal_frames = normal_f
+        #
+        assert (int(frames_metadata["segmentCount"]) ==
+                len(self.extract_segments())), "Inconsistent segmentCount?"
+        return frames_metadata, config_frames, normal_frames
+
+    @staticmethod
+    def extract_frames(mvn):
         """
         The bulk of the MVN file is the ``mvn->subject->frames`` section.
         This function parses it and returns its information in a
@@ -168,6 +254,10 @@ class Mvn(object):
             d["ms"] = int(d["ms"])  # unix timestamp, ms since epoch
             if is_normal:  # only normal frames have index
                 d["index"] = int(d["index"])  # starts by 0, increases by 1
+            try:
+                d["audio_sample"] = int(d["audio_sample"])
+            except KeyError:
+                pass
             return d
         #
         frames_metadata = mvn.subject.frames.attrib
@@ -179,7 +269,7 @@ class Mvn(object):
         #
         return frames_metadata, config_frames, normal_frames
 
-    def get_segments(self):
+    def extract_segments(self):
         """
         :returns: A list of the segment names in ``self.mvn.subject.segments``,
           ordered by id (starting at 1 and incrementing +1).
@@ -191,33 +281,33 @@ class Mvn(object):
             "Segments aren't ordered by id?"
         return segments
 
-    def get_normalframe_magnitudes(self):
+    @staticmethod
+    def extract_normalframe_magnitudes(normal_frames):
         """
         :returns: A list of the magnitude names in each of the
           ``self.normal_frames``
         """
-        result = list(self.normal_frames[0].keys())
-        for i, f in enumerate(self.normal_frames[1:]):
+        result = list(normal_frames[0].keys())
+        for i, f in enumerate(normal_frames[1:]):
             assert list(f.keys()) == result, \
                 "Inconsistent magnitudes in frame %d?" % i
         return result
 
-    def get_normalframe_sequences(self, device="cpu"):
+    def extract_normalframe_sequences(self, frames_metadata, normal_frames,
+                                  device="cpu"):
         """
-        :param str magnitude: One of ``self.get_segments()``
-        :param str magnitude: One of ``self.get_normalframe_magnitudes()``
-        :returns: a torch tensor of shape ``(num_normalframes, num_channels)``
-          where the number of channels is e.g. 1 for scalar magnitudes, 3 for
-          3D vectors...
+        :returns: a dict with torch tensors of shape
+          ``(num_normalframes, num_channels)`` where the number of channels is
+          e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)...
         """
         # prepare variables and resulting datastructure
-        all_magnitudes = self.get_normalframe_magnitudes()
-        n_segments = int(self.frames_metadata["segmentCount"])
-        n_sensors = int(self.frames_metadata["sensorCount"])
-        n_joints = int(self.frames_metadata["jointCount"])
+        all_magnitudes = self.extract_normalframe_magnitudes(normal_frames)
+        n_segments = int(frames_metadata["segmentCount"])
+        n_sensors = int(frames_metadata["sensorCount"])
+        n_joints = int(frames_metadata["jointCount"])
         result = {m: [] for m in all_magnitudes}
         # loop through all frames collecting the per-magnitude sequences
-        for i, f in enumerate(self.normal_frames):
+        for i, f in enumerate(normal_frames):
             assert i == f["index"], \
                 "MVN sequence skipped one frame at %s?" % f["index"]
 
@@ -226,7 +316,8 @@ class Mvn(object):
                 if mag in {"tc", "type"}:
                     entry = f[mag]
                 # add as-is int scalars:
-                elif mag in {"time", "index", "ms", "footContacts"}:
+                elif mag in {"time", "index", "ms", "footContacts",
+                             "audio_sample"}:
                     entry = torch.LongTensor([f[mag]])
                 # add as-is float vectors:
                 elif mag in {"centerOfMass", "jointAngleErgo"}:

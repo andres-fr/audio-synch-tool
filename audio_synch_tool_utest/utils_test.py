@@ -12,7 +12,7 @@ import unittest
 import audio_synch_tool.utils as uts
 
 
-class TimestampTest(unittest.TestCase):
+class TimedeltaTest(unittest.TestCase):
     """
     Contains a simple test that always passes
     """
@@ -22,7 +22,7 @@ class TimestampTest(unittest.TestCase):
         Test that input fields can be retrieved
         """
         SAMPLE_NR, SAMPLERATE = 1234.5678, 1000
-        ts = uts.Timestamp(SAMPLE_NR, SAMPLERATE)
+        ts = uts.Timedelta(SAMPLE_NR, SAMPLERATE)
         self.assertEqual(SAMPLE_NR, ts.sample_nr)
         self.assertEqual(SAMPLERATE, ts.samplerate)
 
@@ -30,7 +30,7 @@ class TimestampTest(unittest.TestCase):
         """
         Constructor asserts whether samplerate is non-negative.
         """
-        self.assertRaises(AssertionError, uts.Timestamp,
+        self.assertRaises(AssertionError, uts.Timedelta,
                           1234.5678, -1000)
 
     def test_neg_sn(self):
@@ -43,8 +43,8 @@ class TimestampTest(unittest.TestCase):
             SAMPLE_NR = random.randint(0, 1e15)
             SAMPLE_NR_NEG = -SAMPLE_NR
             SAMPLERATE = random.randint(0, 1e10)
-            ts = uts.Timestamp(SAMPLE_NR, SAMPLERATE)
-            ts_neg = uts.Timestamp(SAMPLE_NR_NEG, SAMPLERATE)
+            ts = uts.Timedelta(SAMPLE_NR, SAMPLERATE)
+            ts_neg = uts.Timedelta(SAMPLE_NR_NEG, SAMPLERATE)
             #
             d, h, m, s, mms = ts.as_tuple()
             d_neg, h_neg, m_neg, s_neg, mms_neg = ts_neg.as_tuple()
@@ -61,7 +61,7 @@ class TimestampTest(unittest.TestCase):
         Property attributes can't be set
         """
         SAMPLE_NR, SAMPLERATE = 1234.5678, 1000
-        ts = uts.Timestamp(SAMPLE_NR, SAMPLERATE)
+        ts = uts.Timedelta(SAMPLE_NR, SAMPLERATE)
         # setting these attributes will trigger the exception
         with self.assertRaises(AttributeError):
             ts.sample_nr = None
@@ -87,7 +87,7 @@ class TimestampTest(unittest.TestCase):
         for _ in range(NUM_ITERS):
             SAMPLE_NR = random.randint(-1e15, 1e15)
             SAMPLERATE = random.randint(0, 1e10)
-            ts = uts.Timestamp(SAMPLE_NR, SAMPLERATE)
+            ts = uts.Timedelta(SAMPLE_NR, SAMPLERATE)
             d, h, m, s, mms = ts.as_tuple()
             total = ts.total_seconds
             recomp = mms * 1e-6 + s + m * 60 + h * 3600 + d * 24 * 3600
@@ -102,7 +102,7 @@ class TimestampTest(unittest.TestCase):
         for _ in range(NUM_ITERS):
             SAMPLE_NR = random.randint(0, 1e15)
             SAMPLERATE = random.randint(0, 1e14)
-            ts = uts.Timestamp(SAMPLE_NR, SAMPLERATE)
+            ts = uts.Timedelta(SAMPLE_NR, SAMPLERATE)
             # ignore all decimal noise, integer parts must be same
             self.assertAlmostEqual(SAMPLE_NR, ts.total_seconds * SAMPLERATE,
                                    places=0)

@@ -6,6 +6,7 @@
 
 import os
 import datetime
+import pytz
 import torch
 #
 from . import __path__ as PACKAGE_ROOT_PATH  # path of the __init__ file
@@ -35,9 +36,16 @@ def resolve_path(*path_elements):
     p = tuple(PACKAGE_ROOT_PATH) + path_elements
     return os.path.join(*p)
 
+def make_timestamp(timezone="Europe/Berlin"):
+    """
+    Output example: day, month, year, hour, min, sec, milisecs: 10_Feb_2018_20:10:16.151
+    """
+    ts =datetime.datetime.now(tz=pytz.timezone(timezone)).strftime(
+        "%d_%b_%Y_%H:%M:%S.%f")[:-3]
+    return "%s (%s)" % (ts, timezone)
 
 
-class Timestamp(object):
+class Timedelta(object):
     """
     """
     def __init__(self, sample_nr, samplerate):
@@ -136,7 +144,6 @@ class SampleToTimestampFormatter(object):
         :param int num_decimals: An integer between 0 and 6.
         :param bool show_idx: If true, the sample index will be also shown.
         :param number samplerate: A number so that seconds = val / samplerate
-        :returns: A string in the form "{X days} h:m:s.ms"
         """
         assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
         self.num_decimals = num_decimals
@@ -149,8 +156,9 @@ class SampleToTimestampFormatter(object):
         :param number val: the axis value where the tick goes
         :param int pos: from 0 (left margin) to num_ticks+2 (right
           margin)
+        :returns: A string in the form "{X days} h:m:s.ms"
         """
-        ts = Timestamp(val, self.samplerate)
+        ts = Timedelta(val, self.samplerate)
         ts_str = str(ts)
         if ts.microsecs > 0:
             ts_str = ts_str[: - self._n_remove]
@@ -160,6 +168,39 @@ class SampleToTimestampFormatter(object):
             ts_str = str(val) + " (" + ts_str + ")"
         return ts_str
 
+class ProportionalFormatter(object):
+    """
+    This functor can be passed to ``plt.FuncFormatter`` to generate
+    custom tick labels. It fulfills the interface (val, pos)->str.
+
+    Specifically, converts ``val`` number representing a sample into a string
+    in the form ``val [val2]`` where ``val2 = val * ratio``.
+    This can be useful e.g. to show the original values if the signal was
+    resampled.
+    """
+    INT_BLOCK = ":.%"
+    def __init__(self, ratio, num_decimals=3):
+        """
+        :param int num_decimals: number of decimals to show for each number
+        :param number ratio: A number so that val2 = val * ratio
+        """
+        assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
+        self.ratio = ratio
+        self.float_form = "{:.%df}" % num_decimals
+
+    def __call__(self, val, pos):
+        """
+        :param number val: the axis value where the tick goes
+        :param int pos: from 0 (left margin) to num_ticks+2 (right
+          margin)
+        :returns: A string in the form "val [val2]"
+        """
+        val_str = str(int(val)) if val.is_integer() \
+                  else self.float_form.format(val)
+        val2 = val * self.ratio
+        val2_str = str(int(val2)) if val2.is_integer() \
+                  else self.float_form.format(val2)
+        return val_str + " [" + val2_str + "]"
 
 class DownsamplableFunction(object):
     """
