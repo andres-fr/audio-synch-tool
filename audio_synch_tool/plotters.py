@@ -23,6 +23,7 @@ import torch
 from .utils import resolve_path
 from .utils import DownsamplableFunction
 from .utils import IdentityFormatter, SampleToTimestampFormatter
+from .utils import SynchedMvnFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
 from .utils import convert_anchors
 from .mvn import Mvn
@@ -187,15 +188,17 @@ class SynchAndSaveMvnButton(SignalTransformButtons):
             print("[SynchAndSaveMvnButton] wrong path!", e)
             return
         #
-        mvn = self.fig.mvn
-        # convert anchors into stretch and shift:
+        # convert anchors into stretch and shift, then
+        # apply stretch, shift and round to every frame idx to get audio sample
         stretch, shift = convert_anchors(tb_ori1.val, tb_dest1.val,
                                          tb_ori2.val, tb_dest2.val)
-        # apply stretch, shift and round to every frame idx to get audio sample
-        for i, f in enumerate(mvn.mvn.subject.frames.getchildren()):
-            audio_i = round(float(i) * stretch + shift)
-            f.attrib["audio_sample"] = str(audio_i)
-        print("finished adding 'audio_sample' attrib to normal frames.")
+        mvn = self.fig.mvn
+        mvn.set_audio_synch(stretch, shift)
+        #
+        # for i, f in enumerate(mvn.mvn.subject.frames.getchildren()):
+        #     audio_i = round(float(i) * stretch + shift)
+        #     f.attrib["audio_sample"] = str(audio_i)
+        # print("finished adding 'audio_sample' attrib to normal frames.")
         # finally add wav info
         wav_name = os.path.basename(self.fig.wav_path)
         mvn.mvn.attrib["wav_file"] = wav_name
@@ -620,8 +623,11 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         shared_plots = [True for _ in range(len(y_arrays))]
         xtick_formatters = [SampleToTimestampFormatter(audio_samplerate,
                                                        self.NUM_DECIMALS,
-                                                       self.SHOW_IDX),
-                            None, None]
+                                                       self.SHOW_IDX)]
+        xtick_formatters.extend([SynchedMvnFormatter(self.mvn,
+                                                     self.NUM_DECIMALS)
+                                 for _ in mvn_arrays])
+
         # call plotter
         super().__init__(y_arrays, samplerates, max_datapoints, shared_plots,
                          x_arrays, xtick_formatters)
@@ -648,4 +654,6 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         return mvn_arrays
 
     def make_fig(self):
-        return super().make_fig()
+        fig = super().make_fig()
+        # more monkey patching!
+        setattr(fig, "mvn", self.mvn)

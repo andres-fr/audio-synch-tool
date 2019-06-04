@@ -169,27 +169,46 @@ class Mvn(object):
         """
         self.mvn.comment = objectify.DataElement(comment, _pytype="")
 
-    def set_audio_synch(self, frame_idxs, audio_sample_idxs):
+
+    def set_audio_synch(self, stretch, shift):
         """
-        For each frame in the given indexes, this method sets its attribute
-        ``audio_sample`` to be the corresponding entry in audio_sample_idxs.
-        E.g., ``set_audio_synch([1,3,5], [123, 234, 345])`` will set the
-        ``audio_sample`` attribute of the second frame (idx 1) to be 123,
-        the fourth frame will get 234, etc.
+        Given the list of normal frames in this Mvn, each one with an "index"
+        field, this function adds an ``audio_sample`` attribute to each frame,
+        where ``audio_sample = index * stretch + shift``.
+        See ``utils.convert_anchors`` for converting anchor points into stretch
+        and shift.
         """
-        assert len(frame_idxs) == len(audio_sample_idxs), \
-            "idx lists must have same length!"
-        assert all([isinstance(x, int) for x in audio_sample_idxs]), \
-            "all frame idxs must be integers!"
-        #
         normal_frames = [f for f in self.mvn.subject.frames.getchildren()
                          if f.attrib["type"] == "normal"]
-        N = len(normal_frames)
-        assert all([isinstance(x, int) and 0 <= x < N for x in frame_idxs]), \
-            "all frame idxs must be integers between 0 and len(normal_frames)!"
-        #
-        for f_i, a_i in zip(frame_idxs, audio_sample_idxs):
-            normal_frames[f_i].attrib["audio_sample"] = str(a_i)
+        for f in normal_frames:
+            f_idx = float(f.attrib["index"])
+            audio_idx = int(f_idx * float(stretch) + float(shift))
+            f.attrib["audio_sample"] = str(audio_idx)
+        print("finished adding 'audio_sample' attrib to normal frames",
+              "with stretch =", stretch, "and shift =", shift)
+
+
+    # def set_audio_synch(self, frame_idxs, audio_sample_idxs):
+    #     """
+    #     For each frame in the given indexes, this method sets its attribute
+    #     ``audio_sample`` to be the corresponding entry in audio_sample_idxs.
+    #     E.g., ``set_audio_synch([1,3,5], [123, 234, 345])`` will set the
+    #     ``audio_sample`` attribute of the second frame (idx 1) to be 123,
+    #     the fourth frame will get 234, etc.
+    #     """
+    #     assert len(frame_idxs) == len(audio_sample_idxs), \
+    #         "idx lists must have same length!"
+    #     assert all([isinstance(x, int) for x in audio_sample_idxs]), \
+    #         "all frame idxs must be integers!"
+    #     #
+    #     normal_frames = [f for f in self.mvn.subject.frames.getchildren()
+    #                      if f.attrib["type"] == "normal"]
+    #     N = len(normal_frames)
+    #     assert all([isinstance(x, int) and 0 <= x < N for x in frame_idxs]), \
+    #         "all frame idxs must be integers between 0 and len(normal_frames)!"
+    #     #
+    #     for f_i, a_i in zip(frame_idxs, audio_sample_idxs):
+    #         normal_frames[f_i].attrib["audio_sample"] = str(a_i)
 
     # def set_audio_synch(self, first_match, last_match):
     #     """

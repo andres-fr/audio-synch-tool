@@ -138,8 +138,9 @@ def convert_anchors(ori1, dest1, ori2, dest2):
     :param number ori1: any real-valued number. Same for ori2, dest1, dest2.
     :returns: a tuple (stretch, shift) with 2 real-valued numbers.
     """
-    stretch = float(dest1 - dest2) / (ori1 - ori2)
-    shift = dest1 - stretch * ori1
+    o1, d1, o2, d2 = float(ori1), float(dest1), float(ori2), float(dest2)
+    stretch = (d1 - d2) / (o1 - o2)
+    shift = d1 - stretch * o1
     return stretch, shift
 
 # #############################################################################
@@ -165,6 +166,46 @@ class IdentityFormatter(object):
         :returns: ``str(val)``
         """
         return str(val)
+
+
+class SynchedMvnFormatter(object):
+    """
+    This functor can be passed to ``plt.FuncFormatter`` to generate
+    custom tick labels. It fulfills the interface (val, pos)->str.
+
+    Specifically, it looks in the MVN file for the frame index with the
+    given ``val`` and, if found, returns the string ``val [frame_idx]``
+    (otherwise just val). For that, it expects that the frame has defined the
+    ``audio_sample`` attribute.
+    """
+    def __init__(self, mvn, num_decimals=3):
+        """
+        :param int num_decimals: number of decimals to show for each number
+        :param Mvn mvn: expected to be the Mvn instance used in the plot.
+        """
+        self.float_form = "{:.%df}" % num_decimals
+        self.mvn = mvn
+        #
+        normal_frames = [f for f in mvn.mvn.subject.frames.getchildren()
+                         if f.attrib["type"] == "normal"]
+        self.mapping = {float(f.attrib["audio_sample"]): i
+                        for i, f in enumerate(normal_frames)}
+
+    def __call__(self, val, pos):
+        """
+        :param number val: the axis value where the tick goes
+        :param int pos: from 0 (left margin) to num_ticks+2 (right
+          margin)
+        :returns: ``str(val)``
+        """
+        result = (str(int(val)) if val.is_integer() else
+                   self.float_form.format(val))
+        try:
+            frame_str = " [" + str(self.mapping[float(val)]) + "]"
+            result += frame_str
+        except KeyError:
+            pass
+        return result
 
 
 class ProportionalFormatter(object):
