@@ -12,9 +12,10 @@ import torch
 
 # from .utils import Timestamp
 from .plotters import MultipleDownsampledPlotter1D, AudioMvnSynchToolModifier, AudioMvnSynchToolChecker
-from .plotters import TextPrompt, ShiftRightTool, StretchRightTool
+from .plotters import SynchAndSaveMvnButton # TextPrompt, ShiftRightTool, StretchRightTool,
+from .plotters import TextPromptOri1, TextPromptOri2, TextPromptDest1, TextPromptDest2
 from .mvn import Mvn
-
+from .utils import IdentityFormatter, SampleToTimestampFormatter
 __author__ = "Andres FR"
 
 
@@ -26,18 +27,6 @@ __author__ = "Andres FR"
 # #############################################################################
 # ## HELPERS
 # #############################################################################
-
-
-class WavMvnStruct(object):
-    """
-    This class handles the logic required to synchronize a WAV audio file with
-    a MVN motion capture file, both with different sampling rates.
-    """
-    def __init__(self, wav_arr, mvn_obj):
-        """
-        """
-        self.wav = wav_arr
-        self.mvn = mvn_obj
 
 
 # #############################################################################
@@ -80,83 +69,66 @@ mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
 
 
 
+# # mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+# #                mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+# #                mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+# #               [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+# #                mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+# #                mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+# # p = AudioMvnSynchTool(wav_arr, mvn_arrays, audio_samplerate,
+# #                       mocap_samplerate, MAX_SAMPLES_PLOTTED)
 
-# {'time': '0', 'tc': '00:00:00:000', 'ms': '0', 'type': 'identity'}
-# {'time': '0', 'tc': '00:00:00:000', 'ms': '0', 'type': 'tpose'}
-# {'time': '0', 'tc': '00:00:00:000', 'ms': '0', 'type': 'tpose-isb'}
-# {'time': '0', 'index': '0', 'tc': '02:23:28:164', 'ms': '1515983008686', 'type': 'normal'}
-# {'time': '5', 'index': '1', 'tc': '02:23:28:165', 'ms': '1515983008691', 'type': 'normal'}
-# {'time': '9', 'index': '2', 'tc': '02:23:28:166', 'ms': '1515983008695', 'type': 'normal'}
-# {'time': '13', 'index': '3', 'tc': '02:23:28:167', 'ms': '1515983008699', 'type': 'normal'}
-# {'time': '17', 'index': '4', 'tc': '02:23:28:168', 'ms': '1515983008703', 'type': 'normal'}
+# # mocap.set_audio_synch(10000, 2000000)
+# # p = AudioMvnSynchTool(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+
+# p = AudioMvnSynchToolModifier(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+
+# # textbox_widget = TextPrompt
+# # toolbar_widgets = ShiftRightTool, StretchRightTool
+# # fig = p.make_fig(textbox_widget, toolbar_widgets)
+
+
+# fig = p.make_fig()
+# plt.show()
+
+
+# # # fig = p.make_fig(textbox_widget, toolbar_widgets)
+# # fig = p.make_fig()
+# # plt.show()
 
 
 
-# mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-#                mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-#                mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-#               [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-#                mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-#                mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
-# p = AudioMvnSynchTool(wav_arr, mvn_arrays, audio_samplerate,
-#                       mocap_samplerate, MAX_SAMPLES_PLOTTED)
 
-# mocap.set_audio_synch(10000, 2000000)
-# p = AudioMvnSynchTool(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+# plot
+y_arrays = [[wav_arr],
+            [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+            [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+             mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
 
-p = AudioMvnSynchToolModifier(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
+x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
+            for yarrs in y_arrays]
+for a in x_arrays[1]:
+    a *= 1000
+for a in x_arrays[2]:
+    a *= 2000
 
-# textbox_widget = TextPrompt
-# toolbar_widgets = ShiftRightTool, StretchRightTool
+samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate * 10]
+xtick_formatters = [SampleToTimestampFormatter(samplerates[0]),
+                    IdentityFormatter(), IdentityFormatter()]
+# samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
+tied_plots = [False, True, True] # [False, False, False]
+p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
+                                 tied_plots, x_arrays, xtick_formatters)
+
+
+textbox_widgets = [TextPromptOri1, TextPromptDest1, TextPromptOri2,
+                   TextPromptDest2]
+toolbar_widgets = [SynchAndSaveMvnButton]
+
+
 # fig = p.make_fig(textbox_widget, toolbar_widgets)
-
-
-fig = p.make_fig()
+fig = p.make_fig(textbox_widgets, toolbar_widgets)
 plt.show()
-
-
-# # fig = p.make_fig(textbox_widget, toolbar_widgets)
-# fig = p.make_fig()
-# plt.show()
-
-
-
-
-# # plot
-# y_arrays = [[wav_arr],
-#             [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-#             [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
-
-
-
-
-
-
-# x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
-#             for yarrs in y_arrays]
-
-# # x_arrays[0][0] -= 8000 * 60
-
-# for a in x_arrays[1]:
-#     a *= 50000
-# for a in x_arrays[2]:
-#     a *= 50000
-
-# samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate * 2]
-# # samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
-# tied_plots = [True, True, True] # [False, False, False]
-# p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
-#                                  tied_plots, x_arrays)
-
-
-# textbox_widget = TextPrompt
-# toolbar_widgets = ShiftRightTool, StretchRightTool
-
-
-# # fig = p.make_fig(textbox_widget, toolbar_widgets)
-# fig = p.make_fig()
-# plt.show()

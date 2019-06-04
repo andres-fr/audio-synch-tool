@@ -44,11 +44,9 @@ Started dev
 
 * Add widgets DONE
 
-* PLAN: the whole integral GUI thing will take too much time. make 2 variants, one for check and other for measure, and a small CLI that allows to "set" the `audio_sample` field for an MVN given 2 anchor points.
-
-
-
-* Add multi-samplerate label support: right now different "samplerates" aren't really supported: we have to multiply the x axis and this ends up showing the wrong sample number on the x axis. Ideally, all samplerate/shared combinations are possible and accurate. right now the MVN signal is "adapted" to the audio freq. the buttons shift all the signals because they grab the "shared" listeners... this is also messy.x need a plan to proceed further!
+* PLAN: the whole integral GUI thing will take too much time. make 2 variants, one for edit and other for test:
+  * Test variant: given a path to a WAV and an MVNX via CLI, loads the plot and allows inspection
+  * Edit variant: First make an app that given a path to a WAV and MVNX via CLI, and 4 ints for the anchors, outputs an MVNX with the extra infos `(referred_wav, sample_idx_per_frame)`. Then the GUI loads the plots, allows for inspection and contains 4 int prompts for anchoring, which trigger the edit app.
 
 * mvn processing facilities:
   * serialization DONE

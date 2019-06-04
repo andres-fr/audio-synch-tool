@@ -15,12 +15,13 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.widgets import TextBox  # Button
 from matplotlib.backend_tools import ToolBase
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import torch
 
 from .utils import resolve_path
 from .utils import DownsamplableFunction
-from .utils import SampleToTimestampFormatter, ProportionalFormatter
+from .utils import IdentityFormatter, SampleToTimestampFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
 from .mvn import Mvn
 
@@ -32,6 +33,7 @@ __author__ = "Andres FR"
 # #############################################################################
 
 matplotlib.rcParams["toolbar"] = "toolmanager"
+
 
 def redefine_plt_shortcuts(fig, help_keys=["f1"], save_keys=["ctrl+s"]):
     """
@@ -86,6 +88,7 @@ def add_to_toolbar(fig, *widgets):
         tm.add_tool(w.name, w)
         manager.toolbar.add_tool(tm.get_tool(w.name), w.tool_group)
 
+
 # #############################################################################
 # ## WIDGETS
 # #############################################################################
@@ -99,77 +102,136 @@ class SignalTransformButtons(ToolBase):
     fig = None
 
 
-class ShiftRightTool(SignalTransformButtons):
+# class ShiftRightTool(SignalTransformButtons):
+#     """
+#     """
+#     name = "shift_tool"
+#     default_keymap = ""  # "ctrl+right"
+#     description = "Shift all but the first signal by the given amount"
+#     image = resolve_path("data", "shift_right.png")
+
+#     def trigger(self, *args, **kwargs):
+#         """
+#         """
+#         textbox_number = self.fig.textbox.number
+#         if textbox_number is not None:
+#             print("Shifting by", textbox_number)
+#             pass
+#             # for shared_fctr in self.fig.functors[1:]:
+#             #     for f in shared_fctr.functors:
+#             #         for arr in f.arrays:
+#             #             arr.x += textbox_number
+#             #         f(f.ax)
+
+
+#         #     mvn_arrs = self.fig.plotter.arrays[1:]
+#         #     for arrs in mvn_arrs:
+#         #         for a in arrs:
+#         #             a.x += textbox_number
+#         #     self.fig.canvas.draw_idle()
+
+#         # for asdf in self.fig.functors[1:]:
+#         #     for ff in asdf.functors:
+#         #         for aasdf in ff.arrays:
+#         #             print("      !!>>>>>", aasdf.x[-1])
+
+
+# class StretchRightTool(SignalTransformButtons):
+#     """
+#     Stretch tied signals
+#     """
+
+#     name = "stretch_tool"
+#     default_keymap = ""  # "ctrl+up"
+#     description = "Stretch all but the first signal by the given amount"
+#     image = resolve_path("data", "stretch_out.png")
+
+#     def trigger(self, *args, **kwargs):
+#         """
+#         """
+#         print("%&&&&&&&&", self.fig.textbox.number)
+
+# TODO:
+# 1. ADD MULTIPLE TEXT BOXES TO OUR BASE PLOTTER, REACHABLE! KEEP AN EYE ON INTERFACE CHANGES
+# 2. MAKE THE SYNCH SAVE BUTTON THAT EXPECTS 4 PROMPTS, MVN AND WAV NAME.
+# 3. THE INHERITED EDIT PLOTTER SHOULD CREATE 4 BOXES AND THE BUTTON WITH PROPER POINTERS.
+
+class SynchAndSaveMvnButton(SignalTransformButtons):
     """
-    """
-    name = "shift_tool"
-    default_keymap = ""  # "ctrl+right"
-    description = "Shift all but the first signal by the given amount"
-    image = resolve_path("data", "shift_right.png")
-
-    def trigger(self, *args, **kwargs):
-        """
-        """
-        textbox_number = self.fig.textbox.number
-        if textbox_number is not None:
-            print("Shifting by", textbox_number)
-            for shared_fctr in self.fig.functors[1:]:
-                for f in shared_fctr.functors:
-                    for arr in f.arrays:
-                        arr.x += textbox_number
-                    f(f.ax)
-
-        #     mvn_arrs = self.fig.plotter.arrays[1:]
-        #     for arrs in mvn_arrs:
-        #         for a in arrs:
-        #             a.x += textbox_number
-        #     self.fig.canvas.draw_idle()
-
-
-        # for asdf in self.fig.functors[1:]:
-        #     for ff in asdf.functors:
-        #         for aasdf in ff.arrays:
-        #             print("      !!>>>>>", aasdf.x[-1])
-
-class StretchRightTool(SignalTransformButtons):
-    """
-    Stretch tied signals
+    Given the current anchors, set the audio_synch info into the MVN
+    and save it to the given path.
     """
 
-    name = "stretch_tool"
+    name = "save_synched_mvn"
     default_keymap = ""  # "ctrl+up"
-    description = "Stretch all but the first signal by the given amount"
-    image = resolve_path("data", "stretch_out.png")
+    description = ("Given the current anchors, set the audio_synch info into" +
+                   " the MVN and save it to the given path")
+    image = resolve_path("data", "synch_and_save.png")
 
     def trigger(self, *args, **kwargs):
         """
         """
-        print("%&&&&&&&&", self.fig.textbox.number)
+        print("[SynchAndSaveMvnButton]", [t.number for t in self.fig.textboxes])
+
 
 
 class TextPrompt(TextBox):
     """
     """
-    AX_TITLE = "Type a number, press enter and click on the desired operation"
+
+    NAME = ""
+    AX_TITLE = ""
     LABEL = ""
     INITIAL_VAL = ""
+
     def __init__(self, axis):
         """
         """
-        super().__init__(axis, self.LABEL, initial=self.INITIAL_VAL,
-                         label_pad=0.001)
+        super().__init__(axis, self.LABEL)
         self.on_submit(self._submit)
-        self.number = None
         axis.set_title(self.AX_TITLE)
         # self.on_text_change(lambda _: None)
+        self.number = None
+        self._update_display()
+
+    def _update_display(self):
+        s = "" if self.number is None else str(self.number)
+        self.set_val(s)
+
 
     def _submit(self, txt):
         try:
             self.number = float(txt)
-            print("textbox stored", self.number)
+            print("[TextBox %s]" % self.NAME, "stored", self.number)
         except ValueError:
             print(txt, "is not a valid number! ignored...")
             self.number = None
+        finally:
+            self._update_display()
+
+
+class TextPromptOri1(TextPrompt):
+    NAME = "Ori 1"
+    AX_TITLE = "Origin 1"
+
+class TextPromptOri2(TextPrompt):
+    NAME = "Ori 2"
+    AX_TITLE = "Origin 2"
+
+class TextPromptOri1(TextPrompt):
+    NAME = "Ori 1"
+    AX_TITLE = "Origin 1"
+
+class TextPromptDest1(TextPrompt):
+    NAME = "Dest 1"
+    AX_TITLE = "Destinty 1"
+
+class TextPromptDest2(TextPrompt):
+    NAME = "Dest 2"
+    AX_TITLE = "Destiny 2"
+
+
+
 
 
 # #############################################################################
@@ -277,7 +339,7 @@ class MultipleDownsampledPlotter1D(object):
                             if samplerates is None else samplerates)
         self.shared_plots = ([False for _ in range(self.N)]
                              if shared_plots is None else shared_plots)
-        self.xtick_formatters = ([None for _ in range(self.N)]
+        self.xtick_formatters = ([IdentityFormatter() for _ in range(self.N)]
                                  if xtick_formatters is None
                                  else xtick_formatters)
         self.shared_idxs = [idx for idx, b in enumerate(self.shared_plots)
@@ -297,7 +359,7 @@ class MultipleDownsampledPlotter1D(object):
             for i in self.shared_idxs:
                 self.arr_maxranges[i] = shared_maxrange
 
-    def make_fig(self, textbox_widget=None, toolbar_widgets=[]):
+    def make_fig(self, textbox_widgets=[], toolbar_widgets=[]):
         """
         :param toolbar_widgets: A list of class names of type
           SignalTransformButtons. Must include a ``fig`` attribute, which
@@ -309,13 +371,13 @@ class MultipleDownsampledPlotter1D(object):
           ``self.max_datapoints`` number of samples.
         """
         # XOR: either you give both or none!
-        if (textbox_widget is not None) ^ bool(toolbar_widgets):
+        if bool(textbox_widgets) ^ bool(toolbar_widgets):
             raise AssertionError(
                 "either give both textbox and toolbar or none!")
         #
         hratios = [1 for _ in range(self.N)]
         num_axes = self.N
-        if textbox_widget is not None:
+        if textbox_widgets:
             num_axes += 2
             hratios += [self.TEXTBOX_HEIGHT_RATIO]*2
 
@@ -345,9 +407,9 @@ class MultipleDownsampledPlotter1D(object):
                         for i, f in enumerate(functors)]
 
         # configure axes ticks and labels
-        for ax, sr, fnc, ax_xrange, frmtr in zip(axes, self.samplerates, functors,
-                                          self.arr_maxranges,
-                                          self.xtick_formatters):
+        for ax, sr, fnc, ax_xrange, frmtr in zip(axes, self.samplerates,
+                                                 functors, self.arr_maxranges,
+                                                 self.xtick_formatters):
             # add samplerate to axis (needed by label formatter due to rigidity
             # of the callback mechanism)
             setattr(ax, "samplerate", sr)
@@ -377,16 +439,28 @@ class MultipleDownsampledPlotter1D(object):
             ax.callbacks.connect('xlim_changed', fnc)
             ax.set_xlim(*ax_xrange)
         #
-        if (textbox_widget is not None) and toolbar_widgets:
-            for tw in toolbar_widgets:
-                assert issubclass(tw, SignalTransformButtons), \
-                    "All toolbar_widgets must be of type SignalTransformButtons"
-            # create textbox
+        if textbox_widgets and toolbar_widgets:
+            for txtw in textbox_widgets:
+                assert issubclass(txtw, TextBox), \
+                    "All toolbar_widgets must have type TextBox"
+            for toow in toolbar_widgets:
+                assert issubclass(toow, SignalTransformButtons), \
+                    "All toolbar_widgets must have type SignalTransformButtons"
+            # create textboxes
+            textboxes = []
             axes[-2].axis("off")
-            textbox = textbox_widget(axes[-1])
+            axes[-1].axis("off")
+            txt_ax = axes[-1]
+            divider = make_axes_locatable(txt_ax)
+            for txtw in textbox_widgets[::-1]:
+                axx = divider.append_axes("left", size="100%", pad=0.1) # , sharex=axMain)
+                # axx.axis("off")
+                # axShallow.contourf(X[41:80,:], Y[41:80,:], f(X,Y)[41:80,:], vmin=-1, vmax=2)
+                # axShallow.set_xticklabels([])
+                textbox = txtw(axx)
+                textboxes.insert(0, textbox)
             # more monkey patching
-            setattr(fig, "textbox", textbox)
-            setattr(fig, "functors", functors)
+            setattr(fig, "textboxes", textboxes)
             # add toolbar buttons and link them to textbox
             add_to_toolbar(fig, *toolbar_widgets)
             for w in toolbar_widgets:
@@ -395,11 +469,13 @@ class MultipleDownsampledPlotter1D(object):
         fig.subplots_adjust(**self.FIG_MARGINS)
         return fig
 
+
 class AudioMvnSynchToolModifier(MultipleDownsampledPlotter1D):
     """
     """
-    TEXTBOX_WIDGET_CLASS = TextPrompt
-    TOOLBAR_BUTTON_CLASSES = [ShiftRightTool, StretchRightTool]
+    TEXTBOX_WIDGET_CLASSES = [TextPromptOri1, TextPromptDest1, TextPromptOri2,
+                              TextPromptDest2]
+    TOOLBAR_BUTTON_CLASSES = [SynchAndSaveMvnButton]
 
     def __init__(self, audio_array, audio_samplerate, mvn,
                  max_datapoints=10000):
@@ -461,27 +537,25 @@ class AudioMvnSynchToolModifier(MultipleDownsampledPlotter1D):
         mocap_accelerations_3d = frame_sequences["acceleration"]
         mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
         #
-        mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-                      [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+        mvn_arrays = [[
+            mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+                      [
+            mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
         return mvn_arrays
 
-
     def make_fig(self):
-        super().make_fig(self.TEXTBOX_WIDGET_CLASS, self.TOOLBAR_BUTTON_CLASSES)
-
-
+        return super().make_fig(self.TEXTBOX_WIDGET_CLASSES,
+                                self.TOOLBAR_BUTTON_CLASSES)
 
 
 class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
     """
     This doesn't modify the synch, just displays it
     """
-    TEXTBOX_WIDGET_CLASS = TextPrompt
-    TOOLBAR_BUTTON_CLASSES = [ShiftRightTool, StretchRightTool]
 
     def __init__(self, audio_array, audio_samplerate, mvn,
                  max_datapoints=10000):
@@ -523,14 +597,15 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         mocap_accelerations_3d = frame_sequences["acceleration"]
         mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
         #
-        mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-                      [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-                       mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+        mvn_arrays = [[
+            mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+                      [
+            mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
         return mvn_arrays
 
-
     def make_fig(self):
-        super().make_fig()
+        return super().make_fig()

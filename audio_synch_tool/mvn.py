@@ -107,6 +107,7 @@ import torch
 from lxml import etree, objectify  # https://lxml.de/validation.html
 from .utils import make_timestamp
 
+
 # #############################################################################
 # ## GLOBALS
 # #############################################################################
@@ -114,6 +115,11 @@ from .utils import make_timestamp
 
 # #############################################################################
 # ## HELPERS
+# #############################################################################
+
+
+# #############################################################################
+# ## MVN CLASS
 # #############################################################################
 
 class Mvn(object):
@@ -181,11 +187,14 @@ class Mvn(object):
         for f, sv in zip(normal_frames, synch_values):
             # make sure that the sequence is in ascending order, otherwise
             # linspace will be inconsistent with the sequence
-            this_time, this_idx = float(f.attrib["time"]), float(f.attrib["index"])
+            this_time = float(f.attrib["time"])
+            this_idx = float(f.attrib["index"])
             assert this_time >= time_check, \
-                "Ill-formed sequence, 'time' attrib not sorted?"  + str((this_time, time_check))
+                "Ill-formed sequence, 'time' attrib not sorted?" + str(
+                    (this_time, time_check))
             assert this_idx >= index_check, \
-                "Ill-formed sequence, 'index' attrib not sorted?" + str((this_idx, index_check))
+                "Ill-formed sequence, 'index' attrib not sorted?" + str(
+                    (this_idx, index_check))
             time_check, index_check = (this_time, this_idx)
             # if it is good, set the attribute:
             # f.attrib["time"] = str(int(f.attrib["time"]) + 100000000)
@@ -202,15 +211,15 @@ class Mvn(object):
         """
         try:
             return [int(f.attrib["audio_sample"])
-                      for f in self.mvn.subject.frames.getchildren()
-                      if f.attrib["type"] == "normal"]
+                    for f in self.mvn.subject.frames.getchildren()
+                    if f.attrib["type"] == "normal"]
         except KeyError:
             return None
 
     # EXTRACTORS: LIKE "GETTERS" BUT RETURN A MODIFIED COPY OF THE CONTENTS
     def extract_frame_info(self):
         """
-        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``.
+        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``
         """
         f_meta, config_f, normal_f = self.extract_frames(self.mvn)
         frames_metadata = f_meta
@@ -294,7 +303,7 @@ class Mvn(object):
         return result
 
     def extract_normalframe_sequences(self, frames_metadata, normal_frames,
-                                  device="cpu"):
+                                      device="cpu"):
         """
         :returns: a dict with torch tensors of shape
           ``(num_normalframes, num_channels)`` where the number of channels is

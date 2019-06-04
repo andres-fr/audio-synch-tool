@@ -36,11 +36,13 @@ def resolve_path(*path_elements):
     p = tuple(PACKAGE_ROOT_PATH) + path_elements
     return os.path.join(*p)
 
+
 def make_timestamp(timezone="Europe/Berlin"):
     """
-    Output example: day, month, year, hour, min, sec, milisecs: 10_Feb_2018_20:10:16.151
+    Output example: day, month, year, hour, min, sec, milisecs:
+    10_Feb_2018_20:10:16.151
     """
-    ts =datetime.datetime.now(tz=pytz.timezone(timezone)).strftime(
+    ts = datetime.datetime.now(tz=pytz.timezone(timezone)).strftime(
         "%d_%b_%Y_%H:%M:%S.%f")[:-3]
     return "%s (%s)" % (ts, timezone)
 
@@ -122,9 +124,83 @@ class Timedelta(object):
         return self._timestamp
 
 
+def convert_anchors(ori1, dest1, ori2, dest2):
+    """
+    Given a signal that we want to shift and stretch on the x axis, this affine
+    operation can be defined by picking 2 points of the signal (ori1 and ori2,
+    called here "anchors"), and mapping them to other 2 points (dest1 and
+    dest2). For the given anchors, this function returns the corresponding
+    stretching ratio and shifting amount (after stretching) needed to match the
+    given anchors. This is given by solving the formula::
+
+      ``[dest1, dest2] = shift + stretch * [ori1, ori2]``
+
+    :param number ori1: any real-valued number. Same for ori2, dest1, dest2.
+    :returns: a tuple (stretch, shift) with 2 real-valued numbers.
+    """
+    stretch = float(dest1 - dest2) / (ori1 - ori2)
+    shift = dest1 - stretch * ori1
+    return stretch, shift
+
 # #############################################################################
 # ## MATPLOTLIB-RELATED
 # #############################################################################
+
+
+class IdentityFormatter(object):
+    """
+    This functor can be passed to ``plt.FuncFormatter`` to generate
+    custom tick labels. It fulfills the interface (val, pos)->str.
+
+    Specifically, for a given ``val`` returns ``str(val)``. In most cases this
+    is the default matplotlib behaviour, but using this formatter forces it to
+    behave ALWAYS like this and avoid some other smart conversions like
+    scientific notation for big numbers.
+    """
+    def __call__(self, val, pos):
+        """
+        :param number val: the axis value where the tick goes
+        :param int pos: from 0 (left margin) to num_ticks+2 (right
+          margin)
+        :returns: ``str(val)``
+        """
+        return str(val)
+
+
+class ProportionalFormatter(object):
+    """
+    This functor can be passed to ``plt.FuncFormatter`` to generate
+    custom tick labels. It fulfills the interface (val, pos)->str.
+
+    Specifically, converts ``val`` number representing a sample into a string
+    in the form ``val [val2]`` where ``val2 = val * ratio``.
+    This can be useful e.g. to show the original values if the signal was
+    resampled.
+    """
+
+    def __init__(self, ratio, num_decimals=3):
+        """
+        :param int num_decimals: number of decimals to show for each number
+        :param number ratio: A number so that val2 = val * ratio
+        """
+        assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
+        self.ratio = ratio
+        self.float_form = "{:.%df}" % num_decimals
+
+    def __call__(self, val, pos):
+        """
+        :param number val: the axis value where the tick goes
+        :param int pos: from 0 (left margin) to num_ticks+2 (right
+          margin)
+        :returns: A string in the form "val [val2]"
+        """
+        val_str = (str(int(val)) if val.is_integer() else
+                   self.float_form.format(val))
+        val2 = val * self.ratio
+        val2_str = (str(int(val2)) if val2.is_integer() else
+                    self.float_form.format(val2))
+        return val_str + " [" + val2_str + "]"
+
 
 class SampleToTimestampFormatter(object):
     """
@@ -168,39 +244,9 @@ class SampleToTimestampFormatter(object):
             ts_str = str(val) + " (" + ts_str + ")"
         return ts_str
 
-class ProportionalFormatter(object):
-    """
-    This functor can be passed to ``plt.FuncFormatter`` to generate
-    custom tick labels. It fulfills the interface (val, pos)->str.
 
-    Specifically, converts ``val`` number representing a sample into a string
-    in the form ``val [val2]`` where ``val2 = val * ratio``.
-    This can be useful e.g. to show the original values if the signal was
-    resampled.
-    """
-    INT_BLOCK = ":.%"
-    def __init__(self, ratio, num_decimals=3):
-        """
-        :param int num_decimals: number of decimals to show for each number
-        :param number ratio: A number so that val2 = val * ratio
-        """
-        assert 0 <= num_decimals <= 6, "num_decimals must be in [0, ..., 6]!"
-        self.ratio = ratio
-        self.float_form = "{:.%df}" % num_decimals
 
-    def __call__(self, val, pos):
-        """
-        :param number val: the axis value where the tick goes
-        :param int pos: from 0 (left margin) to num_ticks+2 (right
-          margin)
-        :returns: A string in the form "val [val2]"
-        """
-        val_str = str(int(val)) if val.is_integer() \
-                  else self.float_form.format(val)
-        val2 = val * self.ratio
-        val2_str = str(int(val2)) if val2.is_integer() \
-                  else self.float_form.format(val2)
-        return val_str + " [" + val2_str + "]"
+
 
 class DownsamplableFunction(object):
     """
