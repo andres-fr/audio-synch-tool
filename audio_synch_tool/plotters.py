@@ -7,6 +7,7 @@
 
 # os+plt imports right after __future__
 import os
+import torch
 import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
 #     print('no display found. Using non-interactive Agg backend')
@@ -18,7 +19,7 @@ from matplotlib.backend_tools import ToolBase
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import soundfile as sf
-import torch
+
 
 from .utils import resolve_path
 from .utils import DownsamplableFunction
@@ -80,7 +81,7 @@ def add_to_toolbar(fig, *widgets):
     Adds a set of button-like widgets to the toolbar of a given figure.
 
     :param fig: a ``plt.Figure``
-    :param *widgets: A number of class names that extend
+    :param widgets: A number of class names that extend
       ``mpl.backend_tools.ToolBase``. They must have at least defind the
       ``name`` and ``tool_group`` fields.
     """
@@ -105,61 +106,12 @@ class SignalTransformButtons(ToolBase):
     fig = None
 
 
-# class ShiftRightTool(SignalTransformButtons):
-#     """
-#     """
-#     name = "shift_tool"
-#     default_keymap = ""  # "ctrl+right"
-#     description = "Shift all but the first signal by the given amount"
-#     image = resolve_path("data", "shift_right.png")
-
-#     def trigger(self, *args, **kwargs):
-#         """
-#         """
-#         textbox_number = self.fig.textbox.number
-#         if textbox_number is not None:
-#             print("Shifting by", textbox_number)
-#             pass
-#             # for shared_fctr in self.fig.functors[1:]:
-#             #     for f in shared_fctr.functors:
-#             #         for arr in f.arrays:
-#             #             arr.x += textbox_number
-#             #         f(f.ax)
-
-
-#         #     mvn_arrs = self.fig.plotter.arrays[1:]
-#         #     for arrs in mvn_arrs:
-#         #         for a in arrs:
-#         #             a.x += textbox_number
-#         #     self.fig.canvas.draw_idle()
-
-#         # for asdf in self.fig.functors[1:]:
-#         #     for ff in asdf.functors:
-#         #         for aasdf in ff.arrays:
-#         #             print("      !!>>>>>", aasdf.x[-1])
-
-
-# class StretchRightTool(SignalTransformButtons):
-#     """
-#     Stretch tied signals
-#     """
-
-#     name = "stretch_tool"
-#     default_keymap = ""  # "ctrl+up"
-#     description = "Stretch all but the first signal by the given amount"
-#     image = resolve_path("data", "stretch_out.png")
-
-#     def trigger(self, *args, **kwargs):
-#         """
-#         """
-#         print("%&&&&&&&&", self.fig.textbox.number)
-
-
 class SynchAndSaveMvnButton(SignalTransformButtons):
     """
     Given the current anchors, set the audio_synch info into the MVN
     and save it to the given path.
     ..note::
+
       This assumes the following textboxes ordering!:
       ``[ori1, dest1, ori2, dest2, outpath]``
     """
@@ -182,23 +134,17 @@ class SynchAndSaveMvnButton(SignalTransformButtons):
         tb_ori1, tb_dest1, tb_ori2, tb_dest2, tb_outpath = self.fig.textboxes
         # also check if path works
         try:
-            with open(tb_outpath.val, "w") as f:
+            with open(tb_outpath.val, "w") as _:
                 pass
         except Exception as e:
             print("[SynchAndSaveMvnButton] wrong path!", e)
             return
-        #
         # convert anchors into stretch and shift, then
         # apply stretch, shift and round to every frame idx to get audio sample
         stretch, shift = convert_anchors(tb_ori1.val, tb_dest1.val,
                                          tb_ori2.val, tb_dest2.val)
         mvn = self.fig.mvn
         mvn.set_audio_synch(stretch, shift)
-        #
-        # for i, f in enumerate(mvn.mvn.subject.frames.getchildren()):
-        #     audio_i = round(float(i) * stretch + shift)
-        #     f.attrib["audio_sample"] = str(audio_i)
-        # print("finished adding 'audio_sample' attrib to normal frames.")
         # finally add wav info
         wav_name = os.path.basename(self.fig.wav_path)
         mvn.mvn.attrib["wav_file"] = wav_name
@@ -236,6 +182,7 @@ class NumberPrompt(TextBox):
     INITIAL_VAL = ""
     SIZE_PERCENT = "200%"
     PADDING = 0.1
+
     def __init__(self, axis):
         """
         """
@@ -249,7 +196,6 @@ class NumberPrompt(TextBox):
     def _update_display(self):
         s = "" if self.val is None else str(self.val)
         self.set_val(s)
-
 
     def _submit(self, txt):
         try:
@@ -266,18 +212,20 @@ class NumberPromptOri1(NumberPrompt):
     NAME = "Ori 1"
     AX_TITLE = "Origin 1"
 
+
 class NumberPromptOri2(NumberPrompt):
     NAME = "Ori 2"
     AX_TITLE = "Origin 2"
+
 
 class NumberPromptDest1(NumberPrompt):
     NAME = "Dest 1"
     AX_TITLE = "Destiny 1"
 
+
 class NumberPromptDest2(NumberPrompt):
     NAME = "Dest 2"
     AX_TITLE = "Destiny 2"
-
 
 
 # #############################################################################
@@ -493,21 +441,17 @@ class MultipleDownsampledPlotter1D(object):
                 assert issubclass(toow, SignalTransformButtons), \
                     "All toolbar_widgets must have type SignalTransformButtons"
             # create textboxes
-            textboxes = []
-            axes[-2].axis("off")
+            textboxes = []  # this will be monkeypatched to fig
+            axes[-2].axis("off")  # widget space has no axes visible
             axes[-1].axis("off")
-            txt_ax = axes[-1]
-            divider = make_axes_locatable(txt_ax)
-            for txtw in textbox_widgets[::-1]:
-                axx = divider.append_axes("left", size=txtw.SIZE_PERCENT,
-                                          pad=txtw.PADDING) # , sharex=axMain)
-                # axx.axis("off")
-                # axShallow.contourf(X[41:80,:], Y[41:80,:], f(X,Y)[41:80,:], vmin=-1, vmax=2)
-                # axShallow.set_xticklabels([])
+            txt_ax = axes[-1]  # here come the text boxes
+            divider = make_axes_locatable(txt_ax)  # div. ax for multiple boxes
+            for txtw in textbox_widgets:
+                axx = divider.append_axes("right", size=txtw.SIZE_PERCENT,
+                                          pad=txtw.PADDING)
                 textbox = txtw(axx)
-                textboxes.insert(0, textbox)
-            # more monkey patching
-            setattr(fig, "textboxes", textboxes)
+                textboxes.append(textbox)
+            setattr(fig, "textboxes", textboxes)  # allow toolbar to find text
             # add toolbar buttons and link them to textbox
             add_to_toolbar(fig, *toolbar_widgets)
             for w in toolbar_widgets:
@@ -520,8 +464,9 @@ class MultipleDownsampledPlotter1D(object):
 class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
     """
     """
-    TEXTBOX_WIDGET_CLASSES = [NumberPromptOri1, NumberPromptDest1, NumberPromptOri2,
-                              NumberPromptDest2, TextPromptOutPath]
+    TEXTBOX_WIDGET_CLASSES = [NumberPromptOri1, NumberPromptDest1,
+                              NumberPromptOri2, NumberPromptDest2,
+                              TextPromptOutPath]
     TOOLBAR_BUTTON_CLASSES = [SynchAndSaveMvnButton]
 
     def __init__(self, wav_path, mvnx_path, mvnx_schema_path=None,
@@ -534,12 +479,6 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
         #
         wav_arr, audio_samplerate = sf.read(wav_path)
         self.mvn = Mvn(mvnx_path, mvnx_schema_path)
-
-
-
-        # assert isinstance(mvn, Mvn), "mvn must be an instance of Mvn!"
-        # self.mvn = mvn
-
         # get mvn samplerate and our desired y arrays
         mvn_samplerate = float(self.mvn.mvn.subject.attrib["frameRate"])
         mvn_arrays = self._get_mvn_arrays()
@@ -594,6 +533,8 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
         # more monkey patching!
         setattr(fig, "wav_path", self.wav_path)
         setattr(fig, "mvn", self.mvn)
+        return fig
+
 
 class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
     """
@@ -657,3 +598,4 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         fig = super().make_fig()
         # more monkey patching!
         setattr(fig, "mvn", self.mvn)
+        return fig

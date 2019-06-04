@@ -199,7 +199,7 @@ class SynchedMvnFormatter(object):
         :returns: ``str(val)``
         """
         result = (str(int(val)) if val.is_integer() else
-                   self.float_form.format(val))
+                  self.float_form.format(val))
         try:
             frame_str = " [" + str(self.mapping[float(val)]) + "]"
             result += frame_str
@@ -284,9 +284,6 @@ class SampleToTimestampFormatter(object):
                 val = int(val)
             ts_str = str(val) + " (" + ts_str + ")"
         return ts_str
-
-
-
 
 
 class DownsamplableFunction(object):

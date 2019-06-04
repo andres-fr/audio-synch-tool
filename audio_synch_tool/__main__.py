@@ -2,30 +2,31 @@
 # -*- coding: utf-8 -*-
 
 """
+
+Usage example::
+
+  # Open these files, find the anchors and save synched MVNX
+  python -m audio_synch_tool -w ~/SAG_D1_10_M-Jem-2.wav
+  -m ~/SAG_D1-003_(snippet)_slate01_2-23-29.701.mvnx
+  -S ./audio_synch_tool/data/mvn_schema_adapted.xsd -n 10000 -x 20
+
+
+# Load synched MVNX
+python -m audio_synch_tool -w ~/SAG_D1_10_M-Jem-2.wav
+-m audio_synch_tool/data/test_synched.mvnx
+-S ./audio_synch_tool/data/mvn_schema_adapted.xsd -n 10000 -x 20 -c
 """
 
-import os
-import matplotlib.pyplot as plt
-
+import argparse
 import soundfile as sf
-import torch
 
 # from .utils import Timestamp
-from .plotters import MultipleDownsampledPlotter1D, AudioMvnSynchToolEditor, AudioMvnSynchToolChecker
-from .plotters import SynchAndSaveMvnButton # TextPrompt, ShiftRightTool, StretchRightTool,
-from .plotters import NumberPromptOri1
-from .plotters import NumberPromptOri2
-from .plotters import NumberPromptDest1
-from .plotters import NumberPromptDest2
-from .plotters import TextPromptOutPath
+from .plotters import AudioMvnSynchToolEditor, AudioMvnSynchToolChecker
 from .mvn import Mvn
-from .utils import IdentityFormatter, SampleToTimestampFormatter
+
+
 __author__ = "Andres FR"
 
-
-# #############################################################################
-# ## TODO:
-# #############################################################################
 
 # #############################################################################
 # ## GLOBALS
@@ -36,121 +37,84 @@ __author__ = "Andres FR"
 # ## HELPERS
 # #############################################################################
 
+def get_edit_fig(wav_path, mvnx_path, mvnx_schema_path, max_samples_plotted,
+                 num_xticks):
+    """
+    """
+    plotter = AudioMvnSynchToolEditor(wav_path, mvnx_path, mvnx_schema_path,
+                                      max_samples_plotted)
+    plotter.NUM_XTICKS = num_xticks
+    fig = plotter.make_fig()
+    return fig
+
+
+def get_test_fig(wav_path, mvnx_path, mvnx_schema_path, max_samples_plotted,
+                 num_xticks):
+    """
+    """
+    wav_arr, audio_samplerate = sf.read(wav_path)
+    mocap = Mvn(mvnx_path, mvnx_schema_path)
+    #
+    plotter = AudioMvnSynchToolChecker(wav_arr, audio_samplerate, mocap,
+                                       max_samples_plotted)
+    plotter.NUM_XTICKS = num_xticks
+    fig = plotter.make_fig()
+    return fig
+
 
 # #############################################################################
 # ## MAIN ROUTINE
 # #############################################################################
 
-# NUM_TRACKS = 8
-# NUM_SHARED = 3
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-MAX_SAMPLES_PLOTTED = 1e5
-NUM_XTICKS = 20
+def main():
+    """
+    This main routine performs the following tasks:
 
-# define paths
-WAV_PATH = os.path.join(os.getenv("HOME"), "SAG_D1_10_M-Jem-2.wav")
+    1. Parse arguments
+    2. Load ground truth and predictions
+    3. Compute metrics
+    4. Render plot
+    5. Optionally export plot and metrics
+    6. Optionally show interactive plot
+    7. Send plot and metrics to TensorBoard
+    """
+    # parse arguments from command line:
+    parser = argparse.ArgumentParser(description="GUI to test WAV-MVNX synch")
+    parser.add_argument("-w", "--wav_path", help="absolute path",
+                        required=True)
+    parser.add_argument("-m", "--mvnx_path", help="absolute path",
+                        type=str, required=True)
+    parser.add_argument("-S", "--mvnx_schema_path",
+                        help="If given, the MVNX is validated to this schema",
+                        type=str, default=None)
+    parser.add_argument("-n", "--max_samples_plotted",
+                        help="no. of samples per track to show (helps speed)",
+                        type=int, default=10000)
+    parser.add_argument("-x", "--num_xticks",
+                        help="no. of labels on the x axis",
+                        type=int, default=20)
+    parser.add_argument("-c", "--check_mode", action="store_true",
+                        help="If given, opens in check mode (instead of edit)")
+    args = parser.parse_args()
 
-MVN_PATH = os.path.join(os.getenv("HOME"),
-                        "SAG_D1-003_(snippet)_slate01_2-23-29.701.mvnx")
-
-MVN_SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "data", "mvn_schema_adapted.xsd")
-
-
-p = AudioMvnSynchToolEditor(WAV_PATH, MVN_PATH, MVN_SCHEMA_PATH,
-                            MAX_SAMPLES_PLOTTED)
-fig = p.make_fig()
-plt.show(fig)
-input("stop rithg there")
-
-# load fiels
-wav_arr, audio_samplerate = sf.read(WAV_PATH)
-mocap = Mvn(MVN_PATH, MVN_SCHEMA_PATH)
-
-# extract info from mocap
-mocap_samplerate = float(mocap.mvn.subject.attrib["frameRate"])
-mocap_segments = mocap.extract_segments()
-frames_metadata, config_frames, normal_frames = mocap.extract_frame_info()
-frame_sequences = mocap.extract_normalframe_sequences(frames_metadata,
-                                                      normal_frames, "cpu")
-mocap_accelerations_3d = frame_sequences["acceleration"]
-mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
-
-# mocap.set_audio_synch(10000, 2000000)
-# mocap.export("quack.asdf", extra_comment="Bound to audio file XYZ")
-# input("asdfasdf")
-
-
-
-
-# # mvn_arrays = [[mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-# #                mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-# #                mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-# #               [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-# #                mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-# #                mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
-# # p = AudioMvnSynchTool(wav_arr, mvn_arrays, audio_samplerate,
-# #                       mocap_samplerate, MAX_SAMPLES_PLOTTED)
-
-# # mocap.set_audio_synch(10000, 2000000)
-# # p = AudioMvnSynchTool(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
-
-# p = AudioMvnSynchToolModifier(wav_arr, audio_samplerate, mocap, MAX_SAMPLES_PLOTTED)
-
-# # textbox_widget = TextPrompt
-# # toolbar_widgets = ShiftRightTool, StretchRightTool
-# # fig = p.make_fig(textbox_widget, toolbar_widgets)
+    # main globals
+    WAV_PATH = args.wav_path
+    MVNX_PATH = args.mvnx_path
+    MVNX_SCHEMA_PATH = args.mvnx_schema_path
+    MAX_SAMPLES_PLOTTED = args.max_samples_plotted
+    NUM_XTICKS = args.num_xticks
+    CHECK_MODE = args.check_mode
+    #
+    if CHECK_MODE:
+        fig = get_test_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
+                           MAX_SAMPLES_PLOTTED, NUM_XTICKS)
+    else:  # edit mode
+        fig = get_edit_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
+                           MAX_SAMPLES_PLOTTED, NUM_XTICKS)
+    #
+    fig.show()
+    input("press any key into this terminal to exit")
 
 
-# fig = p.make_fig()
-# plt.show()
-
-
-# # # fig = p.make_fig(textbox_widget, toolbar_widgets)
-# # fig = p.make_fig()
-# # plt.show()
-
-
-
-
-
-
-
-
-
-
-# THIS WORKED WELL
-# # plot
-# y_arrays = [[wav_arr],
-#             [mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
-#             [mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-#              mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
-
-# x_arrays = [[torch.arange(len(yarr)).numpy() for yarr in yarrs]
-#             for yarrs in y_arrays]
-# for a in x_arrays[1]:
-#     a *= 1000
-# for a in x_arrays[2]:
-#     a *= 2000
-
-# samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate * 10]
-# xtick_formatters = [SampleToTimestampFormatter(samplerates[0]),
-#                     IdentityFormatter(), IdentityFormatter()]
-# # samplerates = [audio_samplerate, mocap_samplerate, mocap_samplerate]
-# tied_plots = [False, True, True] # [False, False, False]
-# p = MultipleDownsampledPlotter1D(y_arrays, samplerates, MAX_SAMPLES_PLOTTED,
-#                                  tied_plots, x_arrays, xtick_formatters)
-
-
-# textbox_widgets = [NumberPromptOri1, NumberPromptDest1, NumberPromptOri2,
-#                    NumberPromptDest2, TextPromptOutPath]
-
-# toolbar_widgets = [SynchAndSaveMvnButton]
-
-
-# # fig = p.make_fig(textbox_widget, toolbar_widgets)
-# fig = p.make_fig(textbox_widgets, toolbar_widgets)
-# plt.show()
+if __name__ == "__main__":
+    main()

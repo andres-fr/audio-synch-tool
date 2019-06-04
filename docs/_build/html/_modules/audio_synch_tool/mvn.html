@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.mvn &mdash; audio_synch_tool 0.5.0 documentation</title>
+  <title>audio_synch_tool.mvn &mdash; audio_synch_tool 0.6.0 documentation</title>
   
 
   
@@ -17,32 +17,34 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -56,7 +58,7 @@
             
             
               <div class="version">
-                0.5.0
+                0.6.0
               </div>
             
           
@@ -151,11 +153,15 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains functionality concerning the adaption of the</span>
-<span class="sd">XSENS MVN format into our Python setup.</span>
+<span class="sd">XSENS MVN-XML format into our Python setup.</span>
 
+<span class="sd">The official explanation can be found in section 14.4 of this document::</span>
+<span class="sd">  https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</span>
 
-<span class="sd">The following section introduces the contents of the imported MVN file and the</span>
-<span class="sd">way they can be accessed from Python::</span>
+<span class="sd">A copy is stored in this repository.</span>
+
+<span class="sd">The following section introduces more informally the contents of the imported</span>
+<span class="sd">MVN file and the way they can be accessed from Python::</span>
 
 <span class="sd">  # load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd</span>
 <span class="sd">  MVN_SCHEMA_PATH = &quot;xxx&quot;</span>
@@ -225,15 +231,22 @@
 
 <span class="sd"># The following fields are float vectors of the following dimensionality:</span>
 
-<span class="sd">:orientation: ``segmentCount*4 = 92``</span>
+<span class="sd">:orientation: ``segmentCount*4 = 92`` Quaternion vector</span>
 <span class="sd">:position, velocity, acceleration, angularVelocity, angularAcceleration:</span>
-<span class="sd">  ``segmentCount*3 = 69``</span>
-<span class="sd">:footContacts: ``4``</span>
+<span class="sd">  ``segmentCount*3 = 69`` 3D vectors in ``(x,y,z)`` format</span>
+<span class="sd">:footContacts: ``4`` 4D boolean vector</span>
 <span class="sd">:sensorFreeAcceleration, sensorMagneticField: ``sensorCount*3 = 51``</span>
 <span class="sd">:sensorOrientation: ``sensorCount*4 = 68``</span>
 <span class="sd">:jointAngle, jointAngleXZY: ``jointCount*3 = 66``</span>
 <span class="sd">:jointAngleErgo: ``12``</span>
 <span class="sd">:centerOfMass: ``3``</span>
+
+<span class="sd">The units are SI for position, velocity and acceleration. Angular magnitudes</span>
+<span class="sd">are in radians except the ``jointAngle...`` ones that are in degrees. All 3D</span>
+<span class="sd">vectors are in ``(x,y,z)`` format, but the ``jointAngle...`` ones differ in</span>
+<span class="sd">the Euler-rotation order by which they are computed (ZXY, standard or XZY,</span>
+<span class="sd">for shoulders usually).</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -242,6 +255,7 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">lxml</span> <span class="k">import</span> <span class="n">etree</span><span class="p">,</span> <span class="n">objectify</span>  <span class="c1"># https://lxml.de/validation.html</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">make_timestamp</span>
 
 
 <span class="c1"># #############################################################################</span>
@@ -251,6 +265,11 @@
 
 <span class="c1"># #############################################################################</span>
 <span class="c1"># ## HELPERS</span>
+<span class="c1"># #############################################################################</span>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## MVN CLASS</span>
 <span class="c1"># #############################################################################</span>
 
 <div class="viewcode-block" id="Mvn"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn">[docs]</a><span class="k">class</span> <span class="nc">Mvn</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -267,29 +286,95 @@
 <span class="sd">          schema to validate the XML file in mvn_path. If None, validation is</span>
 <span class="sd">          skipped and this part ignored.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvn_path</span> <span class="o">=</span> <span class="n">mvn_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema_path</span> <span class="o">=</span> <span class="n">schema_path</span>
+        <span class="c1">#</span>
         <span class="n">mvn</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">mvn_path</span><span class="p">)</span>
         <span class="c1"># if a schema is given, load it and validate mvn</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">schema_path</span> <span class="o">=</span> <span class="n">schema_path</span>
         <span class="k">if</span> <span class="n">schema_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">XMLSchema</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">schema_path</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">mvn</span><span class="p">),</span>\
-                <span class="s2">&quot;[Mvn]: Given schema didn&#39;t validate given mvn!&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">assertValid</span><span class="p">(</span><span class="n">mvn</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">mvn</span><span class="p">))</span>
-        <span class="n">f_meta</span><span class="p">,</span> <span class="n">config_f</span><span class="p">,</span> <span class="n">normal_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_mvn_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">f_meta</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config_frames</span> <span class="o">=</span> <span class="n">config_f</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">normal_frames</span> <span class="o">=</span> <span class="n">normal_f</span>
-        <span class="c1">#</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span> <span class="o">==</span>
-                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_segments</span><span class="p">())),</span> <span class="s2">&quot;Inconsistent segmentCount?&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_extract_mvn_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvn</span><span class="p">):</span>
+<div class="viewcode-block" id="Mvn.export"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">pretty_print</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra_comment</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves the current ``mvn`` attribute to the given file path as XML and</span>
+<span class="sd">        adds the ``self.mvn.comment.attrib[&quot;export_details&quot;]`` attribute with</span>
+<span class="sd">        a timestamp.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Exported from </span><span class="si">%s</span><span class="s2"> on </span><span class="si">%s</span><span class="s2">. &quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">make_timestamp</span><span class="p">())</span> <span class="o">+</span> <span class="n">extra_comment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">DataElement</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">_pytype</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="p">,</span>
+                               <span class="n">pretty_print</span><span class="o">=</span><span class="n">pretty_print</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[Mvn] exported to&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mvn.set_comment"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.set_comment">[docs]</a>    <span class="k">def</span> <span class="nf">set_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comment</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets a comment that can be found as a string under self.mvn.comment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">objectify</span><span class="o">.</span><span class="n">DataElement</span><span class="p">(</span><span class="n">comment</span><span class="p">,</span> <span class="n">_pytype</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mvn.set_audio_synch"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.set_audio_synch">[docs]</a>    <span class="k">def</span> <span class="nf">set_audio_synch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stretch</span><span class="p">,</span> <span class="n">shift</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given the list of normal frames in this Mvn, each one with an &quot;index&quot;</span>
+<span class="sd">        field, this function adds an ``audio_sample`` attribute to each frame,</span>
+<span class="sd">        where ``audio_sample = index * stretch + shift``.</span>
+<span class="sd">        See ``utils.convert_anchors`` for converting anchor points into stretch</span>
+<span class="sd">        and shift.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">normal_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+                         <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">normal_frames</span><span class="p">:</span>
+            <span class="n">f_idx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>
+            <span class="n">audio_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">f_idx</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">stretch</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">shift</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">audio_idx</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;finished adding &#39;audio_sample&#39; attrib to normal frames&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;with stretch =&quot;</span><span class="p">,</span> <span class="n">stretch</span><span class="p">,</span> <span class="s2">&quot;and shift =&quot;</span><span class="p">,</span> <span class="n">shift</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mvn.get_audio_synch"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.get_audio_synch">[docs]</a>    <span class="k">def</span> <span class="nf">get_audio_synch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: a list with the ``audio_sample`` attributes for the</span>
+<span class="sd">          normal frames, or None if there is at least 1 normal frame without</span>
+<span class="sd">          the ``audio_sample`` attribute. Note that this function assumes that</span>
+<span class="sd">          the entries are integers in the form &#39;123&#39;, so they are retrieved</span>
+<span class="sd">          int(x). If that is not the case, they may be truncated or even throw</span>
+<span class="sd">          an exception.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="c1"># EXTRACTORS: LIKE &quot;GETTERS&quot; BUT RETURN A MODIFIED COPY OF THE CONTENTS</span>
+<div class="viewcode-block" id="Mvn.extract_frame_info"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_frame_info">[docs]</a>    <span class="k">def</span> <span class="nf">extract_frame_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :returns: The tuple ``(frames_metadata, config_frames, normal_frames)``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f_meta</span><span class="p">,</span> <span class="n">config_f</span><span class="p">,</span> <span class="n">normal_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_frames</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="p">)</span>
+        <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">f_meta</span>
+        <span class="n">config_frames</span> <span class="o">=</span> <span class="n">config_f</span>
+        <span class="n">normal_frames</span> <span class="o">=</span> <span class="n">normal_f</span>
+        <span class="c1">#</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span> <span class="o">==</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_segments</span><span class="p">())),</span> <span class="s2">&quot;Inconsistent segmentCount?&quot;</span>
+        <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
+
+<div class="viewcode-block" id="Mvn.extract_frames"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_frames">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_frames</span><span class="p">(</span><span class="n">mvn</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The bulk of the MVN file is the ``mvn-&gt;subject-&gt;frames`` section.</span>
 <span class="sd">        This function parses it and returns its information in a</span>
 <span class="sd">        python-friendly format.</span>
+
 <span class="sd">        :param mvn: An XML tree, expected to be in MVN format</span>
+
 <span class="sd">        :returns: a tuple ``(frames_metadata, config_frames, normal_frames)``</span>
 <span class="sd">          where the metadata is a dict in the form ``{&#39;segmentCount&#39;: &#39;23&#39;,</span>
 <span class="sd">          &#39;sensorCount&#39;: &#39;17&#39;, &#39;jointCount&#39;: &#39;22&#39;}``, the config frames are the</span>
@@ -316,6 +401,10 @@
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ms&quot;</span><span class="p">])</span>  <span class="c1"># unix timestamp, ms since epoch</span>
             <span class="k">if</span> <span class="n">is_normal</span><span class="p">:</span>  <span class="c1"># only normal frames have index</span>
                 <span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>  <span class="c1"># starts by 0, increases by 1</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
             <span class="k">return</span> <span class="n">d</span>
         <span class="c1">#</span>
         <span class="n">frames_metadata</span> <span class="o">=</span> <span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">attrib</span>
@@ -325,9 +414,9 @@
         <span class="n">config_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[:</span><span class="mi">3</span><span class="p">]]</span>
         <span class="n">normal_frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_to_dict</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_frames</span><span class="p">[</span><span class="mi">3</span><span class="p">:]]</span>
         <span class="c1">#</span>
-        <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span>
+        <span class="k">return</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">config_frames</span><span class="p">,</span> <span class="n">normal_frames</span></div>
 
-<div class="viewcode-block" id="Mvn.get_segments"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.get_segments">[docs]</a>    <span class="k">def</span> <span class="nf">get_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Mvn.extract_segments"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_segments">[docs]</a>    <span class="k">def</span> <span class="nf">extract_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :returns: A list of the segment names in ``self.mvn.subject.segments``,</span>
 <span class="sd">          ordered by id (starting at 1 and incrementing +1).</span>
@@ -339,33 +428,33 @@
             <span class="s2">&quot;Segments aren&#39;t ordered by id?&quot;</span>
         <span class="k">return</span> <span class="n">segments</span></div>
 
-<div class="viewcode-block" id="Mvn.get_normalframe_magnitudes"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.get_normalframe_magnitudes">[docs]</a>    <span class="k">def</span> <span class="nf">get_normalframe_magnitudes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Mvn.extract_normalframe_magnitudes"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_normalframe_magnitudes">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_normalframe_magnitudes</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :returns: A list of the magnitude names in each of the</span>
 <span class="sd">          ``self.normal_frames``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
             <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="n">result</span><span class="p">,</span> \
                 <span class="s2">&quot;Inconsistent magnitudes in frame </span><span class="si">%d</span><span class="s2">?&quot;</span> <span class="o">%</span> <span class="n">i</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
-<div class="viewcode-block" id="Mvn.get_normalframe_sequences"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.get_normalframe_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">get_normalframe_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Mvn.extract_normalframe_sequences"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">extract_normalframe_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">normal_frames</span><span class="p">,</span>
+                                      <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param str magnitude: One of ``self.get_segments()``</span>
-<span class="sd">        :param str magnitude: One of ``self.get_normalframe_magnitudes()``</span>
-<span class="sd">        :returns: a torch tensor of shape ``(num_normalframes, num_channels)``</span>
-<span class="sd">          where the number of channels is e.g. 1 for scalar magnitudes, 3 for</span>
-<span class="sd">          3D vectors...</span>
+<span class="sd">        :returns: a dict with torch tensors of shape</span>
+<span class="sd">          ``(num_normalframes, num_channels)`` where the number of channels is</span>
+<span class="sd">          e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># prepare variables and resulting datastructure</span>
-        <span class="n">all_magnitudes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_normalframe_magnitudes</span><span class="p">()</span>
-        <span class="n">n_segments</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span>
-        <span class="n">n_sensors</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;sensorCount&quot;</span><span class="p">])</span>
-        <span class="n">n_joints</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;jointCount&quot;</span><span class="p">])</span>
+        <span class="n">all_magnitudes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_normalframe_magnitudes</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">)</span>
+        <span class="n">n_segments</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;segmentCount&quot;</span><span class="p">])</span>
+        <span class="n">n_sensors</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;sensorCount&quot;</span><span class="p">])</span>
+        <span class="n">n_joints</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">frames_metadata</span><span class="p">[</span><span class="s2">&quot;jointCount&quot;</span><span class="p">])</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">all_magnitudes</span><span class="p">}</span>
         <span class="c1"># loop through all frames collecting the per-magnitude sequences</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normal_frames</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">):</span>
             <span class="k">assert</span> <span class="n">i</span> <span class="o">==</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">],</span> \
                 <span class="s2">&quot;MVN sequence skipped one frame at </span><span class="si">%s</span><span class="s2">?&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span>
 
@@ -374,7 +463,8 @@
                 <span class="k">if</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;tc&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">}:</span>
                     <span class="n">entry</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]</span>
                 <span class="c1"># add as-is int scalars:</span>
-                <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;footContacts&quot;</span><span class="p">}:</span>
+                <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;footContacts&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;audio_sample&quot;</span><span class="p">}:</span>
                     <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]])</span>
                 <span class="c1"># add as-is float vectors:</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;centerOfMass&quot;</span><span class="p">,</span> <span class="s2">&quot;jointAngleErgo&quot;</span><span class="p">}:</span>
@@ -440,25 +530,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
