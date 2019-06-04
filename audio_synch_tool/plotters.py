@@ -6,7 +6,7 @@
 
 
 # os+plt imports right after __future__
-# import os
+import os
 import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
 #     print('no display found. Using non-interactive Agg backend')
@@ -17,12 +17,14 @@ from matplotlib.widgets import TextBox  # Button
 from matplotlib.backend_tools import ToolBase
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import soundfile as sf
 import torch
 
 from .utils import resolve_path
 from .utils import DownsamplableFunction
 from .utils import IdentityFormatter, SampleToTimestampFormatter
 from .utils import XlimCallbackFunctor, SharedXlimCallbackFunctor
+from .utils import convert_anchors
 from .mvn import Mvn
 
 __author__ = "Andres FR"
@@ -151,18 +153,17 @@ class SignalTransformButtons(ToolBase):
 #         """
 #         print("%&&&&&&&&", self.fig.textbox.number)
 
-# TODO:
-# 1. ADD MULTIPLE TEXT BOXES TO OUR BASE PLOTTER, REACHABLE! KEEP AN EYE ON INTERFACE CHANGES
-# 2. MAKE THE SYNCH SAVE BUTTON THAT EXPECTS 4 PROMPTS, MVN AND WAV NAME.
-# 3. THE INHERITED EDIT PLOTTER SHOULD CREATE 4 BOXES AND THE BUTTON WITH PROPER POINTERS.
 
 class SynchAndSaveMvnButton(SignalTransformButtons):
     """
     Given the current anchors, set the audio_synch info into the MVN
     and save it to the given path.
+    ..note::
+      This assumes the following textboxes ordering!:
+      ``[ori1, dest1, ori2, dest2, outpath]``
     """
 
-    name = "save_synched_mvn"
+    name = "synch_and_save_mvn"
     default_keymap = ""  # "ctrl+up"
     description = ("Given the current anchors, set the audio_synch info into" +
                    " the MVN and save it to the given path")
@@ -171,19 +172,67 @@ class SynchAndSaveMvnButton(SignalTransformButtons):
     def trigger(self, *args, **kwargs):
         """
         """
-        print("[SynchAndSaveMvnButton]", [t.number for t in self.fig.textboxes])
+        # make sure inputs are correct before continuing
+        if any([t.val is None for t in self.fig.textboxes]):
+            print("[SynchAndSaveMvnButton] ignored:",
+                  "please set all text boxes wit valid values before!")
+            return
+        #
+        tb_ori1, tb_dest1, tb_ori2, tb_dest2, tb_outpath = self.fig.textboxes
+        # also check if path works
+        try:
+            with open(tb_outpath.val, "w") as f:
+                pass
+        except Exception as e:
+            print("[SynchAndSaveMvnButton] wrong path!", e)
+            return
+        #
+        mvn = self.fig.mvn
+        # convert anchors into stretch and shift:
+        stretch, shift = convert_anchors(tb_ori1.val, tb_dest1.val,
+                                         tb_ori2.val, tb_dest2.val)
+        # apply stretch, shift and round to every frame idx to get audio sample
+        for i, f in enumerate(mvn.mvn.subject.frames.getchildren()):
+            audio_i = round(float(i) * stretch + shift)
+            f.attrib["audio_sample"] = str(audio_i)
+        print("finished adding 'audio_sample' attrib to normal frames.")
+        # finally add wav info
+        wav_name = os.path.basename(self.fig.wav_path)
+        mvn.mvn.attrib["wav_file"] = wav_name
+        print("Added mvn.mvn.attrib['wav_file'] =", wav_name)
+        # and save
+        mvn.export(tb_outpath.val)
 
 
+class TextPromptOutPath(TextBox):
+    NAME = "OutPath"
+    AX_TITLE = "Synched MVNX Out Path:"
+    LABEL = ""
+    INITIAL_VAL = os.getenv("HOME")
+    SIZE_PERCENT = "500%"
+    PADDING = 0.5
 
-class TextPrompt(TextBox):
+    def __init__(self, axis):
+        """
+        """
+        super().__init__(axis, self.LABEL, initial=self.INITIAL_VAL)
+        axis.set_title(self.AX_TITLE)
+        self.val = self.INITIAL_VAL
+        self.on_submit(self._submit)
+
+    def _submit(self, txt):
+        self.val = txt
+
+
+class NumberPrompt(TextBox):
     """
     """
-
     NAME = ""
     AX_TITLE = ""
     LABEL = ""
     INITIAL_VAL = ""
-
+    SIZE_PERCENT = "200%"
+    PADDING = 0.1
     def __init__(self, axis):
         """
         """
@@ -191,46 +240,40 @@ class TextPrompt(TextBox):
         self.on_submit(self._submit)
         axis.set_title(self.AX_TITLE)
         # self.on_text_change(lambda _: None)
-        self.number = None
+        self.val = None
         self._update_display()
 
     def _update_display(self):
-        s = "" if self.number is None else str(self.number)
+        s = "" if self.val is None else str(self.val)
         self.set_val(s)
 
 
     def _submit(self, txt):
         try:
-            self.number = float(txt)
-            print("[TextBox %s]" % self.NAME, "stored", self.number)
+            self.val = float(txt)
+            # print("[TextBox %s]" % self.NAME, "stored", self.val)
         except ValueError:
             print(txt, "is not a valid number! ignored...")
-            self.number = None
+            self.val = None
         finally:
             self._update_display()
 
 
-class TextPromptOri1(TextPrompt):
+class NumberPromptOri1(NumberPrompt):
     NAME = "Ori 1"
     AX_TITLE = "Origin 1"
 
-class TextPromptOri2(TextPrompt):
+class NumberPromptOri2(NumberPrompt):
     NAME = "Ori 2"
     AX_TITLE = "Origin 2"
 
-class TextPromptOri1(TextPrompt):
-    NAME = "Ori 1"
-    AX_TITLE = "Origin 1"
-
-class TextPromptDest1(TextPrompt):
+class NumberPromptDest1(NumberPrompt):
     NAME = "Dest 1"
-    AX_TITLE = "Destinty 1"
+    AX_TITLE = "Destiny 1"
 
-class TextPromptDest2(TextPrompt):
+class NumberPromptDest2(NumberPrompt):
     NAME = "Dest 2"
     AX_TITLE = "Destiny 2"
-
-
 
 
 
@@ -453,7 +496,8 @@ class MultipleDownsampledPlotter1D(object):
             txt_ax = axes[-1]
             divider = make_axes_locatable(txt_ax)
             for txtw in textbox_widgets[::-1]:
-                axx = divider.append_axes("left", size="100%", pad=0.1) # , sharex=axMain)
+                axx = divider.append_axes("left", size=txtw.SIZE_PERCENT,
+                                          pad=txtw.PADDING) # , sharex=axMain)
                 # axx.axis("off")
                 # axShallow.contourf(X[41:80,:], Y[41:80,:], f(X,Y)[41:80,:], vmin=-1, vmax=2)
                 # axShallow.set_xticklabels([])
@@ -470,62 +514,56 @@ class MultipleDownsampledPlotter1D(object):
         return fig
 
 
-class AudioMvnSynchToolModifier(MultipleDownsampledPlotter1D):
+class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
     """
     """
-    TEXTBOX_WIDGET_CLASSES = [TextPromptOri1, TextPromptDest1, TextPromptOri2,
-                              TextPromptDest2]
+    TEXTBOX_WIDGET_CLASSES = [NumberPromptOri1, NumberPromptDest1, NumberPromptOri2,
+                              NumberPromptDest2, TextPromptOutPath]
     TOOLBAR_BUTTON_CLASSES = [SynchAndSaveMvnButton]
 
-    def __init__(self, audio_array, audio_samplerate, mvn,
+    def __init__(self, wav_path, mvnx_path, mvnx_schema_path=None,
                  max_datapoints=10000):
         """
         """
-        assert isinstance(mvn, Mvn), "mvn must be an instance of Mvn!"
-        self.mvn = mvn
+        self.wav_path = wav_path
+        self.mvnx_path = mvnx_path
+        self.mvnx_schema_path = mvnx_schema_path
+        #
+        wav_arr, audio_samplerate = sf.read(wav_path)
+        self.mvn = Mvn(mvnx_path, mvnx_schema_path)
+
+
+
+        # assert isinstance(mvn, Mvn), "mvn must be an instance of Mvn!"
+        # self.mvn = mvn
+
         # get mvn samplerate and our desired y arrays
-        self.mvn_samplerate = float(mvn.mvn.subject.attrib["frameRate"])
+        mvn_samplerate = float(self.mvn.mvn.subject.attrib["frameRate"])
         mvn_arrays = self._get_mvn_arrays()
-        y_arrays = [[audio_array]] + mvn_arrays
+        y_arrays = [[wav_arr]] + mvn_arrays
         # x-array for audio is trivial
-        x_audio = torch.arange(len(audio_array)).type(torch.float64).numpy()
+        x_audio = torch.arange(len(wav_arr)).type(torch.float64).numpy()
         # x-array for mvn: if no pre-synched entries use frame indexes.
         x_mvn = self.mvn.get_audio_synch()
         if x_mvn is None:
             x_mvn = [int(f.attrib["index"])
                      for f in self.mvn.mvn.subject.frames.getchildren()
                      if f.attrib["type"] == "normal"]
-            # print(x_audio[0], x_audio[-1])
-            # x_mvn = self.mvn.set_audio_synch(0, len(x_audio))
-            # x_mvn = self.mvn.get_audio_synch()
         x_mvn = torch.Tensor(x_mvn).numpy()
 
         # bundle plotter inputs:
         x_arrays = [[x_audio]] + [[x_mvn for a in arrs] for arrs in mvn_arrays]
-        samplerates = [audio_samplerate for _ in y_arrays]
-        shared_plots = [True for _ in range(len(y_arrays))]
-        # xtick_formatters = [SampleToTimestampFormatter(audio_samplerate,
-        #                                                self.NUM_DECIMALS,
-        #                                                self.SHOW_IDX),
-        #                     ProportionalFormatter(2, self.NUM_DECIMALS),
-        #                     ProportionalFormatter(1.5, self.NUM_DECIMALS)]
+        samplerates = [audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
+        shared_plots = [False] + [True for _ in mvn_arrays]
         xtick_formatters = [SampleToTimestampFormatter(audio_samplerate,
                                                        self.NUM_DECIMALS,
-                                                       self.SHOW_IDX),
-                            None, None]
+                                                       self.SHOW_IDX)] + [
+                                                           IdentityFormatter()
+                                                           for _ in mvn_arrays]
         # call plotter
         super().__init__(y_arrays, samplerates, max_datapoints, shared_plots,
                          x_arrays, xtick_formatters)
 
-        # x_arrays = [[torch.arange(len(yarr)).type(torch.float64).numpy()
-        #              for yarr in yarrs]
-        #             for yarrs in y_arrays]
-        # # modify mvn x-arrays
-        # sr_ratio = float(audio_samplerate) / self.mvn_samplerate
-        # for xarrs in x_arrays[1:]:
-        #     for xa in xarrs:
-        #         xa *= sr_ratio
-        # ### samplerates =[audio_samplerate] + [mvn_samplerate for _ in mvn_arrays]
     def _get_mvn_arrays(self):
         """
         """
@@ -548,9 +586,11 @@ class AudioMvnSynchToolModifier(MultipleDownsampledPlotter1D):
         return mvn_arrays
 
     def make_fig(self):
-        return super().make_fig(self.TEXTBOX_WIDGET_CLASSES,
-                                self.TOOLBAR_BUTTON_CLASSES)
-
+        fig = super().make_fig(self.TEXTBOX_WIDGET_CLASSES,
+                               self.TOOLBAR_BUTTON_CLASSES)
+        # more monkey patching!
+        setattr(fig, "wav_path", self.wav_path)
+        setattr(fig, "mvn", self.mvn)
 
 class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
     """

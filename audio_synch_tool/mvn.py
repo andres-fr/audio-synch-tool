@@ -163,42 +163,70 @@ class Mvn(object):
             f.write(s)
             print("[Mvn] exported to", filepath)
 
-    def set_audio_synch(self, first_match, last_match):
+    def set_comment(self, comment):
         """
-        Given the range of an audio file that this Mvn is expected to cover,
-        this function will set the ``audio_sample`` attribute of each "normal"
-        frame, where the first frame will contain first_match, the last
-        will contain last_match and the rest will be linearly interpolated and
-        rounded to the nearest integer.
+        Sets a comment that can be found as a string under self.mvn.comment
+        """
+        self.mvn.comment = objectify.DataElement(comment, _pytype="")
 
-        :param int first_match: The sample number in the audio file that
-          corresponds to the first frame
-        :param int last_match: The sample number in the audio file that
-          corresponds to the last frame
+    def set_audio_synch(self, frame_idxs, audio_sample_idxs):
         """
-        assert isinstance(first_match, int), "first_match has to be int!"
-        assert isinstance(last_match, int), "last_match has to be int!"
+        For each frame in the given indexes, this method sets its attribute
+        ``audio_sample`` to be the corresponding entry in audio_sample_idxs.
+        E.g., ``set_audio_synch([1,3,5], [123, 234, 345])`` will set the
+        ``audio_sample`` attribute of the second frame (idx 1) to be 123,
+        the fourth frame will get 234, etc.
+        """
+        assert len(frame_idxs) == len(audio_sample_idxs), \
+            "idx lists must have same length!"
+        assert all([isinstance(x, int) for x in audio_sample_idxs]), \
+            "all frame idxs must be integers!"
+        #
         normal_frames = [f for f in self.mvn.subject.frames.getchildren()
                          if f.attrib["type"] == "normal"]
-        synch_values = torch.linspace(first_match, last_match,
-                                      len(normal_frames)).round()
-        time_check = float(normal_frames[0].attrib["time"])
-        index_check = float(normal_frames[0].attrib["index"])
-        for f, sv in zip(normal_frames, synch_values):
-            # make sure that the sequence is in ascending order, otherwise
-            # linspace will be inconsistent with the sequence
-            this_time = float(f.attrib["time"])
-            this_idx = float(f.attrib["index"])
-            assert this_time >= time_check, \
-                "Ill-formed sequence, 'time' attrib not sorted?" + str(
-                    (this_time, time_check))
-            assert this_idx >= index_check, \
-                "Ill-formed sequence, 'index' attrib not sorted?" + str(
-                    (this_idx, index_check))
-            time_check, index_check = (this_time, this_idx)
-            # if it is good, set the attribute:
-            # f.attrib["time"] = str(int(f.attrib["time"]) + 100000000)
-            f.attrib["audio_sample"] = str(int(sv))
+        N = len(normal_frames)
+        assert all([isinstance(x, int) and 0 <= x < N for x in frame_idxs]), \
+            "all frame idxs must be integers between 0 and len(normal_frames)!"
+        #
+        for f_i, a_i in zip(frame_idxs, audio_sample_idxs):
+            normal_frames[f_i].attrib["audio_sample"] = str(a_i)
+
+    # def set_audio_synch(self, first_match, last_match):
+    #     """
+    #     Given the range of an audio file that this Mvn is expected to cover,
+    #     this function will set the ``audio_sample`` attribute of each "normal"
+    #     frame, where the first frame will contain first_match, the last
+    #     will contain last_match and the rest will be linearly interpolated and
+    #     rounded to the nearest integer.
+
+    #     :param int first_match: The sample number in the audio file that
+    #       corresponds to the first frame
+    #     :param int last_match: The sample number in the audio file that
+    #       corresponds to the last frame
+    #     """
+    #     assert isinstance(first_match, int), "first_match has to be int!"
+    #     assert isinstance(last_match, int), "last_match has to be int!"
+    #     normal_frames = [f for f in self.mvn.subject.frames.getchildren()
+    #                      if f.attrib["type"] == "normal"]
+    #     synch_values = torch.linspace(first_match, last_match,
+    #                                   len(normal_frames)).round()
+    #     time_check = float(normal_frames[0].attrib["time"])
+    #     index_check = float(normal_frames[0].attrib["index"])
+    #     for f, sv in zip(normal_frames, synch_values):
+    #         # make sure that the sequence is in ascending order, otherwise
+    #         # linspace will be inconsistent with the sequence
+    #         this_time = float(f.attrib["time"])
+    #         this_idx = float(f.attrib["index"])
+    #         assert this_time >= time_check, \
+    #             "Ill-formed sequence, 'time' attrib not sorted?" + str(
+    #                 (this_time, time_check))
+    #         assert this_idx >= index_check, \
+    #             "Ill-formed sequence, 'index' attrib not sorted?" + str(
+    #                 (this_idx, index_check))
+    #         time_check, index_check = (this_time, this_idx)
+    #         # if it is good, set the attribute:
+    #         # f.attrib["time"] = str(int(f.attrib["time"]) + 100000000)
+    #         f.attrib["audio_sample"] = str(int(sv))
 
     def get_audio_synch(self):
         """

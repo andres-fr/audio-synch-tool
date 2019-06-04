@@ -10,6 +10,7 @@
 				<xsd:element ref="mvnx:securityCode"/>
 			</xsd:sequence>
 			<xsd:attribute name="version" type="xsd:string" use="required"/>
+                        <xsd:attribute name="wav_file" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
