@@ -5,3 +5,6 @@ Python3 project featuring the processing functionality and GUI to align, with sa
 
 * WAV audio
 * MVN motion capture
+
+
+Usage help: `python -m audio_synch_tool -h`
