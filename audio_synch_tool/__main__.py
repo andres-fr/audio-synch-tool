@@ -108,9 +108,11 @@ def main():
     if CHECK_MODE:
         fig = get_test_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
                            MAX_SAMPLES_PLOTTED, NUM_XTICKS)
+        fig.suptitle("Check Mode")
     else:  # edit mode
         fig = get_edit_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
                            MAX_SAMPLES_PLOTTED, NUM_XTICKS)
+        fig.suptitle("Edit Mode")
     #
     fig.show()
     input("press any key into this terminal to exit")

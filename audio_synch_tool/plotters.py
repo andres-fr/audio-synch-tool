@@ -585,11 +585,11 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
         #
         mvn_arrays = [[
-            mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("LeftUpperArm")].numpy(),
             mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
             mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
                       [
-            mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
+            mocap_accel_norm[:, mocap_segments.index("RightUpperArm")].numpy(),
             mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
             mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
         return mvn_arrays
