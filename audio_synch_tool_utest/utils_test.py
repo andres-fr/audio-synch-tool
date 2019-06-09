@@ -106,3 +106,34 @@ class TimedeltaTest(unittest.TestCase):
             # ignore all decimal noise, integer parts must be same
             self.assertAlmostEqual(SAMPLE_NR, ts.total_seconds * SAMPLERATE,
                                    places=0)
+
+
+class ConvertAnchorsTest(unittest.TestCase):
+    """
+    """
+    AUDIO_SAMPLERATE = 48000
+    MVN_SAMPLERATE = 240
+    NUM_TESTS = 1000
+    LOW_SEC_MAX = 10  # first anchor will be at most this seconds
+    HI_SEC_MIN = 15 * 60  # last anchor will be at least this seconds
+
+    def test_precision(self):
+        """
+        This function tests the precision of the stretch and shift
+        values returned by ``utils.convert_anchors``, by feeding
+        some big integers and checking for equality.
+        """
+        for _ in range(self.NUM_TESTS):
+            # create anchors far away from each other
+            o1 = random.randint(0, self.MVN_SAMPLERATE * self.LOW_SEC_MAX)
+            d1 = random.randint(0, self.AUDIO_SAMPLERATE * self.LOW_SEC_MAX)
+            o2 = random.randint(self.MVN_SAMPLERATE * self.HI_SEC_MIN,
+                                self.MVN_SAMPLERATE * self.HI_SEC_MIN * 2)
+            d2 = random.randint(self.AUDIO_SAMPLERATE * self.HI_SEC_MIN,
+                                self.AUDIO_SAMPLERATE * self.HI_SEC_MIN * 2)
+            # convert anchors and test for equality
+            stretch, shift = uts.convert_anchors(o1, d1, o2, d2)
+            result1 = round(stretch * o1 + shift)
+            result2 = round(stretch * o2 + shift)
+            self.assertEqual(result1, d1)
+            self.assertEqual(result2, d2)

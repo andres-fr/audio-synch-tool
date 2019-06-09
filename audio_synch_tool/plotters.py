@@ -134,7 +134,7 @@ class SynchAndSaveMvnButton(SignalTransformButtons):
         tb_ori1, tb_dest1, tb_ori2, tb_dest2, tb_outpath = self.fig.textboxes
         # also check if path works
         try:
-            with open(tb_outpath.val, "w") as _:
+            with open(tb_outpath.val, "w"):
                 pass
         except Exception as e:
             print("[SynchAndSaveMvnButton] wrong path!", e)

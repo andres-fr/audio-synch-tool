@@ -173,7 +173,7 @@ class Mvn(object):
         """
         Given the list of normal frames in this Mvn, each one with an "index"
         field, this function adds an ``audio_sample`` attribute to each frame,
-        where ``audio_sample = index * stretch + shift``.
+        where ``audio_sample = round(index * stretch + shift)``.
         See ``utils.convert_anchors`` for converting anchor points into stretch
         and shift.
         """
@@ -181,7 +181,7 @@ class Mvn(object):
                          if f.attrib["type"] == "normal"]
         for f in normal_frames:
             f_idx = float(f.attrib["index"])
-            audio_idx = int(f_idx * float(stretch) + float(shift))
+            audio_idx = round(f_idx * float(stretch) + float(shift))
             f.attrib["audio_sample"] = str(audio_idx)
         print("finished adding 'audio_sample' attrib to normal frames",
               "with stretch =", stretch, "and shift =", shift)
