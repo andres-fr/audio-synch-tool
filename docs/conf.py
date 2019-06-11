@@ -32,10 +32,10 @@ copyright = '2019, Andres FR'
 author = 'Andres FR'
 
 # The short X.Y version
-version = '1.1.2'
+version = '1.2.0'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.2'
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------
