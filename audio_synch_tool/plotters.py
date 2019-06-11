@@ -166,7 +166,7 @@ class TextPromptOutPath(TextBox):
         """
         super().__init__(axis, self.LABEL, initial=self.INITIAL_VAL)
         axis.set_title(self.AX_TITLE)
-        self.val = self.INITIAL_VAL
+        self.val = self.INITIAL_VAL if self.INITIAL_VAL is not None else ""
         self.on_submit(self._submit)
 
     def _submit(self, txt):
