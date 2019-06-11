@@ -135,6 +135,7 @@ def tensor_has_all_integers(tnsr):
     """
     return bool(((tnsr % 1) == 0).all())
 
+
 def convert_anchors(ori1, dest1, ori2, dest2):
     """
     Given a signal that we want to shift and stretch on the x axis, this affine

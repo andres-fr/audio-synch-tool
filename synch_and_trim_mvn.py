@@ -28,7 +28,7 @@ import argparse
 #
 import soundfile as sf
 #
-from audio_synch_tool.utils import convert_anchors, make_timestamp
+from audio_synch_tool.utils import convert_anchors
 from audio_synch_tool.mvn import Mvn
 
 
@@ -140,7 +140,7 @@ def main():
     for f in all_frames.iterchildren():
         if f.attrib["type"] == "normal":
             # for each normal frame, read the index and "long" audio index
-            idx, a_idx = int(f.attrib["index"]), int(f.attrib["audio_sample"])
+            a_idx = int(f.attrib["audio_sample"])
             # subtract the "beg" sample from every audio idx to get the "short"
             f.attrib["audio_sample"] = str(a_idx - beg)
             # if the "long" index is out of the "short" bounds, remove it
@@ -152,6 +152,7 @@ def main():
         OUT_PATH = "_".join([MVNX_PATH, "anchors", str(ori1), str(dest1),
                              str(ori2), str(dest2)])
     mocap.export(OUT_PATH, pretty_print=PRETTY_PRINT, extra_comment="")
+
 
 if __name__ == "__main__":
     main()

@@ -299,9 +299,9 @@ class Mvn(object):
         result = {m: [] for m in all_magnitudes}
         # loop through all frames collecting the per-magnitude sequences
         for i, f in enumerate(normal_frames):
-            assert i == f["index"], \
-                "MVN sequence skipped one frame at %s?" % f["index"]
-
+            # commented out because triggers for MVNs that don't start at 0
+            # assert i == f["index"], \
+            #     "MVN sequence skipped one frame at %s?" % f["index"]
             for mag in f.keys():
                 # add string entries:
                 if mag in {"tc", "type"}:

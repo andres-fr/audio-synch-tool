@@ -3,7 +3,7 @@
 
 """
 .. warning::
-  Since BSON can be bigger than JSON (see  https://stackoverflow.com/a/24116464)
+  Since BSON can be bigger than JSON (see https://stackoverflow.com/a/24116464)
   this module is abandoned until a better solution comes up.
 
 The goal of this module is to provide an interface between MVNX and MMC, both
@@ -93,7 +93,7 @@ class ObjectifiedMvnToJsonEncoder(json.JSONEncoder):
         for k, v in atts.items():
             try:
                 result[k] = self.process_string(v)
-            except:
+            except Exception:
                 result[k] = v
         return result
 
@@ -134,9 +134,9 @@ class ObjectifiedMvnToJsonEncoder(json.JSONEncoder):
                 result["children"] = o.__dict__
                 for k, v in result["children"].items():
                     try:
-                        l = list(iter(v))
-                        if len(l) > 1:
-                            result["children"][k] = l
+                        val_list = list(iter(v))
+                        if len(val_list) > 1:
+                            result["children"][k] = val_list
                     except TypeError:  # not iterable, leave alone
                         pass
         except AttributeError:
@@ -169,7 +169,6 @@ def mvn_to_json(mvn_in_path, json_out_path, mvn_schema_path=None,
         with open(json_out_path, "wb") as f:
             f.write(bson_data)
             print("wrote BSON to", json_out_path)
-
 
 
 # #############################################################################
