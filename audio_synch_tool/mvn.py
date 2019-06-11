@@ -146,34 +146,22 @@ class Mvn(object):
             self.schema.assertValid(mvn)
         #
         self.mvn = objectify.fromstring(etree.tostring(mvn))
-        # for iii in self.mvn.subject.sensors.iterchildren():
-        #     print(">>>>>>>><<<>>>", type(iii), iii.__dict__, iii.attrib)
-        # print("????", self.mvn.subject.sensors.__dict__, self.mvn.securityCode.attrib, type(self.mvn.securityCode))
-        # input("wtf1")
-        # print(etree.tostring(self.mvn, pretty_print=True).decode("utf-8"))
-        # input("wtf2")
 
     def export(self, filepath, pretty_print=True, extra_comment=""):
         """
         Saves the current ``mvn`` attribute to the given file path as XML and
-        adds the ``self.mvn.comment.attrib["export_details"]`` attribute with
+        adds the ``self.mvn.attrib["pythonComment"]`` attribute with
         a timestamp.
         """
         #
         with open(filepath, "w") as f:
             msg = "Exported from %s on %s. " % (
                 self.__class__.__name__, make_timestamp()) + extra_comment
-            self.mvn.comment = objectify.DataElement(msg, _pytype="")
+            self.mvn.attrib["pythonComment"] = msg
             s = etree.tostring(self.mvn,
                                pretty_print=pretty_print).decode("utf-8")
             f.write(s)
             print("[Mvn] exported to", filepath)
-
-    def set_comment(self, comment):
-        """
-        Sets a comment that can be found as a string under self.mvn.comment
-        """
-        self.mvn.comment = objectify.DataElement(comment, _pytype="")
 
     def set_audio_synch(self, stretch, shift):
         """

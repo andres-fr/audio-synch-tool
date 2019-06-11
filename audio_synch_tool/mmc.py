@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
+.. warning::
+  Since BSON can be bigger than JSON (see  https://stackoverflow.com/a/24116464)
+  this module is abandoned until a better solution comes up.
+
 The goal of this module is to provide an interface between MVNX and MMC, both
 in JSON and BSON format.
 
@@ -10,7 +14,6 @@ in JSON and BSON format.
 3. convert logical data into MMC
 4. export/import MMC both as JSON and BSON
 5. convert logical data back into XML tree
-
 """
 
 
@@ -166,3 +169,22 @@ def mvn_to_json(mvn_in_path, json_out_path, mvn_schema_path=None,
         with open(json_out_path, "wb") as f:
             f.write(bson_data)
             print("wrote BSON to", json_out_path)
+
+
+
+# #############################################################################
+# ## MAIN ROUTINE?
+# #############################################################################
+
+def test(mvn_path, mvn_schema_path, out_path="/tmp/test.json", as_bson=False):
+    """
+    """
+    mvn_to_json(mvn_path, out_path, mvn_schema_path, write_as_binary=as_bson)
+    if as_bson:
+        with open(out_path, "rb") as f:
+            data = bson.loads(f.read())
+            print(">>>", data.keys())
+    else:
+        with open(out_path, "r") as f:
+            data = json.load(f)
+            print(">>>>", data.keys())
