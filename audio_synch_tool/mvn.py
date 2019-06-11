@@ -146,6 +146,12 @@ class Mvn(object):
             self.schema.assertValid(mvn)
         #
         self.mvn = objectify.fromstring(etree.tostring(mvn))
+        # for iii in self.mvn.subject.sensors.iterchildren():
+        #     print(">>>>>>>><<<>>>", type(iii), iii.__dict__, iii.attrib)
+        # print("????", self.mvn.subject.sensors.__dict__, self.mvn.securityCode.attrib, type(self.mvn.securityCode))
+        # input("wtf1")
+        # print(etree.tostring(self.mvn, pretty_print=True).decode("utf-8"))
+        # input("wtf2")
 
     def export(self, filepath, pretty_print=True, extra_comment=""):
         """
