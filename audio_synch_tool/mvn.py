@@ -14,7 +14,7 @@ The following section introduces more informally the contents of the imported
 MVN file and the way they can be accessed from Python::
 
   # load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd
-  mvn_path = "yyy"
+  mvn_path = "XXX"
   mmvn = Mvn(mvn_path, validate=True)
 
   # These elements contain some small metadata:
