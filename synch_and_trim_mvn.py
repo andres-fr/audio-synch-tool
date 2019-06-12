@@ -85,9 +85,9 @@ def main():
                         required=True)
     parser.add_argument("-m", "--mvnx_path", help="absolute path",
                         type=str, required=True)
-    parser.add_argument("-S", "--mvnx_schema_path",
-                        help="If given, the MVNX is validated to this schema",
-                        type=str, default=None)
+    parser.add_argument("-v", "--validate_mvnx",
+                        help="If given, the MVNX is validated to our schema",
+                        action="store_true")
     parser.add_argument("-a", "--anchors",
                         help="A set of 4 numbers: ori1, dest1, ori2, dest2.",
                         type=float, nargs=4, required=True)
@@ -102,7 +102,7 @@ def main():
     SHORT_WAV_PATH = args.shorter_wav
     LONG_WAV_PATH = args.longer_wav
     MVNX_PATH = args.mvnx_path
-    MVNX_SCHEMA_PATH = args.mvnx_schema_path
+    VALIDATE_MVNX = args.validate_mvnx
     ANCHORS = args.anchors
     OUT_PATH = args.out_path
     PRETTY_PRINT = args.pretty_print
@@ -129,7 +129,7 @@ def main():
 
     # load mvnx and add the audio information
     print("loading MVNX from", MVNX_PATH)
-    mocap = Mvn(MVNX_PATH, MVNX_SCHEMA_PATH)
+    mocap = Mvn(MVNX_PATH, VALIDATE_MVNX)
     mocap.set_audio_synch(stretch, shift)
     wav_name = os.path.basename(SHORT_WAV_PATH)
     mocap.mvn.attrib["wav_file"] = wav_name

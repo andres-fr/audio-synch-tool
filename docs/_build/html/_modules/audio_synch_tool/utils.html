@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.utils &mdash; audio_synch_tool 0.6.0 documentation</title>
+  <title>audio_synch_tool.utils &mdash; audio_synch_tool 1.2.1 documentation</title>
   
 
   
@@ -17,34 +17,32 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -58,7 +56,7 @@
             
             
               <div class="version">
-                0.6.0
+                1.2.1
               </div>
             
           
@@ -272,6 +270,18 @@
 <span class="sd">        Returns a string in the form &quot;{X days} h:m:s.microseconds&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp</span></div>
+
+
+<span class="c1"># #############################################################################</span>
+<span class="c1"># ## ARITHMETIC</span>
+<span class="c1"># #############################################################################</span>
+
+<div class="viewcode-block" id="tensor_has_all_integers"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.tensor_has_all_integers">[docs]</a><span class="k">def</span> <span class="nf">tensor_has_all_integers</span><span class="p">(</span><span class="n">tnsr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a PyTorch tensor (usually floats), returns True if all entries are</span>
+<span class="sd">    integers, false otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(((</span><span class="n">tnsr</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="convert_anchors"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.convert_anchors">[docs]</a><span class="k">def</span> <span class="nf">convert_anchors</span><span class="p">(</span><span class="n">ori1</span><span class="p">,</span> <span class="n">dest1</span><span class="p">,</span> <span class="n">ori2</span><span class="p">,</span> <span class="n">dest2</span><span class="p">):</span>
@@ -585,16 +595,25 @@
   
 
 
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

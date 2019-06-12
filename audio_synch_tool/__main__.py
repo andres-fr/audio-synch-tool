@@ -37,23 +37,23 @@ __author__ = "Andres FR"
 # ## HELPERS
 # #############################################################################
 
-def get_edit_fig(wav_path, mvnx_path, mvnx_schema_path, max_samples_plotted,
+def get_edit_fig(wav_path, mvnx_path, validate_mvnx, max_samples_plotted,
                  num_xticks):
     """
     """
-    plotter = AudioMvnSynchToolEditor(wav_path, mvnx_path, mvnx_schema_path,
+    plotter = AudioMvnSynchToolEditor(wav_path, mvnx_path, validate_mvnx,
                                       max_samples_plotted)
     plotter.NUM_XTICKS = num_xticks
     fig = plotter.make_fig()
     return fig
 
 
-def get_test_fig(wav_path, mvnx_path, mvnx_schema_path, max_samples_plotted,
+def get_test_fig(wav_path, mvnx_path, validate_mvnx, max_samples_plotted,
                  num_xticks):
     """
     """
     wav_arr, audio_samplerate = sf.read(wav_path)
-    mocap = Mvn(mvnx_path, mvnx_schema_path)
+    mocap = Mvn(mvnx_path, validate_mvnx)
     #
     plotter = AudioMvnSynchToolChecker(wav_arr, audio_samplerate, mocap,
                                        max_samples_plotted)
@@ -84,9 +84,9 @@ def main():
                         required=True)
     parser.add_argument("-m", "--mvnx_path", help="absolute path",
                         type=str, required=True)
-    parser.add_argument("-S", "--mvnx_schema_path",
-                        help="If given, the MVNX is validated to this schema",
-                        type=str, default=None)
+    parser.add_argument("-v", "--validate_mvnx",
+                        help="If given, the MVNX is validated to our schema",
+                        action="store_true")
     parser.add_argument("-n", "--max_samples_plotted",
                         help="no. of samples per track to show (helps speed)",
                         type=int, default=10000)
@@ -100,17 +100,17 @@ def main():
     # main globals
     WAV_PATH = args.wav_path
     MVNX_PATH = args.mvnx_path
-    MVNX_SCHEMA_PATH = args.mvnx_schema_path
+    VALIDATE_MVNX = args.validate_mvnx
     MAX_SAMPLES_PLOTTED = args.max_samples_plotted
     NUM_XTICKS = args.num_xticks
     CHECK_MODE = args.check_mode
     #
     if CHECK_MODE:
-        fig = get_test_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
+        fig = get_test_fig(WAV_PATH, MVNX_PATH, VALIDATE_MVNX,
                            MAX_SAMPLES_PLOTTED, NUM_XTICKS)
         fig.suptitle("Check Mode")
     else:  # edit mode
-        fig = get_edit_fig(WAV_PATH, MVNX_PATH, MVNX_SCHEMA_PATH,
+        fig = get_edit_fig(WAV_PATH, MVNX_PATH, VALIDATE_MVNX,
                            MAX_SAMPLES_PLOTTED, NUM_XTICKS)
         fig.suptitle("Edit Mode")
     #

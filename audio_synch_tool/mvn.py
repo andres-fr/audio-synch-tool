@@ -14,9 +14,8 @@ The following section introduces more informally the contents of the imported
 MVN file and the way they can be accessed from Python::
 
   # load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd
-  MVN_SCHEMA_PATH = "xxx"
   mvn_path = "yyy"
-  mmvn = Mvn(mvn_path, MVN_SCHEMA_PATH)
+  mmvn = Mvn(mvn_path, validate=True)
 
   # These elements contain some small metadata:
   mmvn.mvn.attrib
@@ -105,7 +104,7 @@ __author__ = "Andres FR"
 
 import torch
 from lxml import etree, objectify  # https://lxml.de/validation.html
-from .utils import make_timestamp
+from .utils import make_timestamp, resolve_path
 
 
 # #############################################################################
@@ -129,20 +128,20 @@ class Mvn(object):
     examples and more information.
     """
 
-    def __init__(self, mvn_path, schema_path=None):
+    MVNX_SCHEMA_PATH = resolve_path("data", "mvn_schema_adapted.xsd")
+
+    def __init__(self, mvn_path, validate=False):
         """
         :param str mvn_path: a valid path pointing to the XML file to load
-        :param str schema_path: (optional): a valid path pointing to an MVN
-          schema to validate the XML file in mvn_path. If None, validation is
-          skipped and this part ignored.
+        :param str validate: (optional): if true, the loaded XML will be
+          validated against the schema definition in self.MVNX_SCHEMA_PATH.
         """
         self.mvn_path = mvn_path
-        self.schema_path = schema_path
         #
         mvn = etree.parse(mvn_path)
         # if a schema is given, load it and validate mvn
-        if schema_path is not None:
-            self.schema = etree.XMLSchema(file=schema_path)
+        if validate:
+            self.schema = etree.XMLSchema(file=self.MVNX_SCHEMA_PATH)
             self.schema.assertValid(mvn)
         #
         self.mvn = objectify.fromstring(etree.tostring(mvn))

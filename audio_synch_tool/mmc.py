@@ -145,12 +145,12 @@ class ObjectifiedMvnToJsonEncoder(json.JSONEncoder):
         return result
 
 
-def mvn_to_json(mvn_in_path, json_out_path, mvn_schema_path=None,
+def mvn_to_json(mvn_in_path, json_out_path, validate_mvn=False,
                 write_as_binary=True):
     """
     """
     print("loading mvnx...")
-    mocap = Mvn(mvn_in_path, mvn_schema_path)
+    mocap = Mvn(mvn_in_path, validate_mvn)
     print("converting mvnx to JSON...")
     json_str = json.dumps(mocap.mvn, cls=ObjectifiedMvnToJsonEncoder)
     del mocap

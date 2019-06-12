@@ -1,0 +1,18 @@
+{
+  "title": "MPIEA MoCap Schema (MMC)",
+  "description": "Schema for JSON Keypoint annotations",
+  "type": "object",
+  "required": ["meta", "config_frames", "normal_frames"],
+  "properties": {
+    "meta": {
+      "description": "Contains general information",
+      "type": "object",
+      "required": ["version"],
+      "properties" : {
+        "version" : {
+          "description": "", "type": "integer", "minimum": 0
+        }
+      }
+    }
+  }
+}

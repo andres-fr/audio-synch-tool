@@ -1,15 +1,16 @@
 audio\_synch\_tool package
 ==========================
 
-Subpackages
------------
-
-.. toctree::
-
-    audio_synch_tool.data
-
 Submodules
 ----------
+
+audio\_synch\_tool.mmc module
+-----------------------------
+
+.. automodule:: audio_synch_tool.mmc
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 audio\_synch\_tool.mvn module
 -----------------------------

@@ -5,12 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Upcoming
+## v[1.2.2] ([diff](https://github.com/andres-fr/audio-synch-tool/compare/v1.2.0...v1.2.2))
 
-### Added:
+### Changed:
 
-* Mvn sequence loadable as PyTorch tensors
-* Plotter now accepts explicit x axis input
+* Now Mvn class refers to the package's MVNX validation schema by default, so now validation can be done by feeding `-v` instead of `-S <SCHEMA_PATH>`
+
+## [1.2.1]
+
+At this stage the following is implemented:
+
+* Mvn class and schema to load and validate MVNX files
+* Plotter base class with functionality to host multiple plots and multiple lines per plot
+* Interaction: custom buttons and text prompts
+* Two specific subclasses of the plotter: one for editing and one for checking signals. Subclasses extract the acceleration magnitude for both arms from the MVN by default.
+* Editing class has functionality to provide 4 anchor points and export synched MVNX
 
 ## [0.5.0] - 24-Jun-2019
 
@@ -28,31 +37,8 @@ Started dev
 
 ## TODO:
 
-
 ### high priority
 
-* multi plotter debug: ticks with different samplerates dont work? DONE
-* zooming doesnt have resolution when num_plots > 1 DONE
-
-* create multi-multiplotter, which given lists of lists plots multiple lines per axis. DONE
-
-* mvn: split vectors into per-sensor info, and plot in multi-multiplotter DONE
-
-* explicit x axis in plotter DONE
-
-* Allow pseudo-shared axes with different formatters DONE
-
-* Add widgets DONE
-
-* PLAN: the whole integral GUI thing will take too much time. make 2 variants, one for edit and other for test:
-  * Test variant: given a path to a WAV and an MVNX via CLI, loads the plot and allows inspection
-  * Edit variant: First make an app that given a path to a WAV and MVNX via CLI, and 4 ints for the anchors, outputs an MVNX with the extra infos `(referred_wav, sample_idx_per_frame)`. Then the GUI loads the plots, allows for inspection and contains 4 int prompts for anchoring, which trigger the edit app.
-
-* mvn processing facilities:
-  * serialization DONE
-  * Fix timestamp
-  * Shift and stretch DONE (through set and get `audio_sample` field)
-
-
 ### low priority
-* replace all np dependencies with torch DONE
+* Add useful info to plots
+* abstract the accel.magnitude extraction from the plotter classes

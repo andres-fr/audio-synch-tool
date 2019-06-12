@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.plotters &mdash; audio_synch_tool 0.6.0 documentation</title>
+  <title>audio_synch_tool.plotters &mdash; audio_synch_tool 1.2.1 documentation</title>
   
 
   
@@ -17,34 +17,32 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -58,7 +56,7 @@
             
             
               <div class="version">
-                0.6.0
+                1.2.1
               </div>
             
           
@@ -284,7 +282,7 @@
         <span class="n">tb_ori1</span><span class="p">,</span> <span class="n">tb_dest1</span><span class="p">,</span> <span class="n">tb_ori2</span><span class="p">,</span> <span class="n">tb_dest2</span><span class="p">,</span> <span class="n">tb_outpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">textboxes</span>
         <span class="c1"># also check if path works</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tb_outpath</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">_</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tb_outpath</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">):</span>
                 <span class="k">pass</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[SynchAndSaveMvnButton] wrong path!&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
@@ -316,7 +314,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LABEL</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">INITIAL_VAL</span><span class="p">)</span>
         <span class="n">axis</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AX_TITLE</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INITIAL_VAL</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INITIAL_VAL</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">INITIAL_VAL</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">on_submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_submit</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
@@ -619,16 +617,15 @@
                               <span class="n">TextPromptOutPath</span><span class="p">]</span>
     <span class="n">TOOLBAR_BUTTON_CLASSES</span> <span class="o">=</span> <span class="p">[</span><span class="n">SynchAndSaveMvnButton</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav_path</span><span class="p">,</span> <span class="n">mvnx_path</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav_path</span><span class="p">,</span> <span class="n">mvnx_path</span><span class="p">,</span> <span class="n">validate_mvnx</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">max_datapoints</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wav_path</span> <span class="o">=</span> <span class="n">wav_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_path</span> <span class="o">=</span> <span class="n">mvnx_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mvnx_schema_path</span> <span class="o">=</span> <span class="n">mvnx_schema_path</span>
         <span class="c1">#</span>
         <span class="n">wav_arr</span><span class="p">,</span> <span class="n">audio_samplerate</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span> <span class="o">=</span> <span class="n">Mvn</span><span class="p">(</span><span class="n">mvnx_path</span><span class="p">,</span> <span class="n">mvnx_schema_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mvn</span> <span class="o">=</span> <span class="n">Mvn</span><span class="p">(</span><span class="n">mvnx_path</span><span class="p">,</span> <span class="n">validate_mvnx</span><span class="p">)</span>
         <span class="c1"># get mvn samplerate and our desired y arrays</span>
         <span class="n">mvn_samplerate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">mvn</span><span class="o">.</span><span class="n">subject</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;frameRate&quot;</span><span class="p">])</span>
         <span class="n">mvn_arrays</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_mvn_arrays</span><span class="p">()</span>
@@ -735,11 +732,11 @@
         <span class="n">mocap_accel_norm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">mocap_accelerations_3d</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1">#</span>
         <span class="n">mvn_arrays</span> <span class="o">=</span> <span class="p">[[</span>
-            <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;LeftShoulder&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+            <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;LeftUpperArm&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
             <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;LeftForeArm&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
             <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;LeftHand&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()],</span>
                       <span class="p">[</span>
-            <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;RightShoulder&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+            <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;RightUpperArm&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
             <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;RightForeArm&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
             <span class="n">mocap_accel_norm</span><span class="p">[:,</span> <span class="n">mocap_segments</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;RightHand&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()]]</span>
         <span class="k">return</span> <span class="n">mvn_arrays</span>
@@ -778,16 +775,25 @@
   
 
 
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

@@ -1,5 +1,5 @@
 .. audio_synch_tool documentation master file, created by
-   sphinx-quickstart on Tue Jun  4 22:30:13 2019.
+   sphinx-quickstart on Wed Jun 12 16:25:50 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

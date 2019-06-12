@@ -469,16 +469,15 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
                               TextPromptOutPath]
     TOOLBAR_BUTTON_CLASSES = [SynchAndSaveMvnButton]
 
-    def __init__(self, wav_path, mvnx_path, mvnx_schema_path=None,
+    def __init__(self, wav_path, mvnx_path, validate_mvnx=False,
                  max_datapoints=10000):
         """
         """
         self.wav_path = wav_path
         self.mvnx_path = mvnx_path
-        self.mvnx_schema_path = mvnx_schema_path
         #
         wav_arr, audio_samplerate = sf.read(wav_path)
-        self.mvn = Mvn(mvnx_path, mvnx_schema_path)
+        self.mvn = Mvn(mvnx_path, validate_mvnx)
         # get mvn samplerate and our desired y arrays
         mvn_samplerate = float(self.mvn.mvn.subject.attrib["frameRate"])
         mvn_arrays = self._get_mvn_arrays()

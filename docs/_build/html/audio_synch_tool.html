@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool package &mdash; audio_synch_tool 0.6.0 documentation</title>
+  <title>audio_synch_tool package &mdash; audio_synch_tool 1.2.1 documentation</title>
   
 
   
@@ -17,36 +17,33 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="audio_synch_tool.data package" href="audio_synch_tool.data.html" />
     <link rel="prev" title="Welcome to audio_synch_tool’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -60,7 +57,7 @@
             
             
               <div class="version">
-                0.6.0
+                1.2.1
               </div>
             
           
@@ -87,11 +84,8 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">audio_synch_tool package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="audio_synch_tool.data.html">audio_synch_tool.data package</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.mmc">audio_synch_tool.mmc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.mvn">audio_synch_tool.mvn module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.plotters">audio_synch_tool.plotters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.utils">audio_synch_tool.utils module</a></li>
@@ -164,35 +158,87 @@
             
   <div class="section" id="audio-synch-tool-package">
 <h1>audio_synch_tool package<a class="headerlink" href="#audio-synch-tool-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="audio_synch_tool.data.html">audio_synch_tool.data package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="audio_synch_tool.data.html#module-audio_synch_tool.data">Module contents</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-audio_synch_tool.mmc">
+<span id="audio-synch-tool-mmc-module"></span><h2>audio_synch_tool.mmc module<a class="headerlink" href="#module-audio_synch_tool.mmc" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Since BSON can be bigger than JSON (see <a class="reference external" href="https://stackoverflow.com/a/24116464">https://stackoverflow.com/a/24116464</a>)
+this module is abandoned until a better solution comes up.</p>
+</div>
+<p>The goal of this module is to provide an interface between MVNX and MMC, both
+in JSON and BSON format.</p>
+<ol class="arabic simple">
+<li>Have a proper definition of MMC</li>
+<li>load MVNX into an XML tree</li>
+<li>convert logical data into MMC</li>
+<li>export/import MMC both as JSON and BSON</li>
+<li>convert logical data back into XML tree</li>
+</ol>
+<dl class="class">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder">
+<em class="property">class </em><code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">ObjectifiedMvnToJsonEncoder</code><span class="sig-paren">(</span><em>*</em>, <em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<p>This encoder handles the conversion from an MVNX object that follows our
+modified schema and has been imported via <code class="docutils literal notranslate"><span class="pre">lxml.objectify</span></code>, into a
+JSON object. It can be passed to <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code> to create a JSON string
+that can be then exported as plain text or BSON.</p>
+<dl class="attribute">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.ALL_ARRAYS_AS_FLOAT">
+<code class="descname">ALL_ARRAYS_AS_FLOAT</code><em class="property"> = True</em><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.ALL_ARRAYS_AS_FLOAT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.EXPECTED_TYPES">
+<code class="descname">EXPECTED_TYPES</code><em class="property"> = [&lt;class 'lxml.etree._Attrib'&gt;, &lt;class 'lxml.objectify.StringElement'&gt;, &lt;class 'lxml.objectify.ObjectifiedElement'&gt;]</em><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.EXPECTED_TYPES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.default">
+<code class="descname">default</code><span class="sig-paren">(</span><em>o</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function doesn’t need to be recursive, that is handled
+by the encoder itself.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_attrib">
+<em class="property">classmethod </em><code class="descname">process_attrib</code><span class="sig-paren">(</span><em>atts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.process_attrib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_attrib" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_string">
+<em class="property">classmethod </em><code class="descname">process_string</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.process_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="audio_synch_tool.mmc.mvn_to_json">
+<code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">mvn_to_json</code><span class="sig-paren">(</span><em>mvn_in_path</em>, <em>json_out_path</em>, <em>validate_mvn=False</em>, <em>write_as_binary=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#mvn_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.mvn_to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="audio_synch_tool.mmc.test">
+<code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">test</code><span class="sig-paren">(</span><em>mvn_path</em>, <em>mvn_schema_path</em>, <em>out_path='/tmp/test.json'</em>, <em>as_bson=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-audio_synch_tool.mvn">
 <span id="audio-synch-tool-mvn-module"></span><h2>audio_synch_tool.mvn module<a class="headerlink" href="#module-audio_synch_tool.mvn" title="Permalink to this headline">¶</a></h2>
 <p>This module contains functionality concerning the adaption of the
 XSENS MVN-XML format into our Python setup.</p>
-<dl class="simple">
-<dt>The official explanation can be found in section 14.4 of this document::</dt><dd><p><a class="reference external" href="https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf">https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</a></p>
-</dd>
+<dl class="docutils">
+<dt>The official explanation can be found in section 14.4 of this document::</dt>
+<dd><a class="reference external" href="https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf">https://usermanual.wiki/Document/MVNUserManual.1147412416.pdf</a></dd>
 </dl>
 <p>A copy is stored in this repository.</p>
 <p>The following section introduces more informally the contents of the imported
 MVN file and the way they can be accessed from Python:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># load mvn schema https://www.xsens.com/mvn/mvnx/schema.xsd
-MVN_SCHEMA_PATH = &quot;xxx&quot;
 mvn_path = &quot;yyy&quot;
-mmvn = Mvn(mvn_path, MVN_SCHEMA_PATH)
+mmvn = Mvn(mvn_path, validate=True)
 
 # These elements contain some small metadata:
 mmvn.mvn.attrib
@@ -246,53 +292,52 @@ print(&quot;num_normal_frames:&quot;, len(mmvn.normal_frames))
 </pre></div>
 </div>
 <p>The following fields contain metadata about the frame:</p>
-<dl class="field-list simple">
-<dt class="field-odd">time</dt>
-<dd class="field-odd"><p>ms since start (integer). It is close to
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">time:</th><td class="field-body">ms since start (integer). It is close to
 <code class="docutils literal notranslate"><span class="pre">int(1000.0</span> <span class="pre">*</span> <span class="pre">index</span> <span class="pre">/</span> <span class="pre">samplerate)</span></code>, being equal most of the times and
 at most 1 milisecond away. It is neither truncated nor rounded, maybe it
-is given by the hardware.</p>
-</dd>
-<dt class="field-even">index</dt>
-<dd class="field-even"><p>starts with 0, +1 each normal frame</p>
-</dd>
-<dt class="field-odd">tc</dt>
-<dd class="field-odd"><p>string like ‘02:23:28:164’</p>
-</dd>
-<dt class="field-even">ms</dt>
-<dd class="field-even"><p>unix timestamp like 1515983008686 (used to compute time)</p>
-</dd>
-<dt class="field-odd">type</dt>
-<dd class="field-odd"><p>one of “identity”, “tpose”, “tpose-isb”, “normal”</p>
-</dd>
-</dl>
+is given by the hardware.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">index:</th><td class="field-body">starts with 0, +1 each normal frame</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">tc:</th><td class="field-body">string like ‘02:23:28:164’</td>
+</tr>
+<tr class="field-even field"><th class="field-name">ms:</th><td class="field-body">unix timestamp like 1515983008686 (used to compute time)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type:</th><td class="field-body">one of “identity”, “tpose”, “tpose-isb”, “normal”</td>
+</tr>
+</tbody>
+</table>
 <p># The following fields are float vectors of the following dimensionality:</p>
-<dl class="field-list simple">
-<dt class="field-odd">orientation</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">segmentCount*4</span> <span class="pre">=</span> <span class="pre">92</span></code> Quaternion vector</p>
-</dd>
-<dt class="field-even">position, velocity, acceleration, angularVelocity, angularAcceleration</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">segmentCount*3</span> <span class="pre">=</span> <span class="pre">69</span></code> 3D vectors in <code class="docutils literal notranslate"><span class="pre">(x,y,z)</span></code> format</p>
-</dd>
-<dt class="field-odd">footContacts</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">4</span></code> 4D boolean vector</p>
-</dd>
-<dt class="field-even">sensorFreeAcceleration, sensorMagneticField</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sensorCount*3</span> <span class="pre">=</span> <span class="pre">51</span></code></p>
-</dd>
-<dt class="field-odd">sensorOrientation</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sensorCount*4</span> <span class="pre">=</span> <span class="pre">68</span></code></p>
-</dd>
-<dt class="field-even">jointAngle, jointAngleXZY</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">jointCount*3</span> <span class="pre">=</span> <span class="pre">66</span></code></p>
-</dd>
-<dt class="field-odd">jointAngleErgo</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">12</span></code></p>
-</dd>
-<dt class="field-even">centerOfMass</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">3</span></code></p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">orientation:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">segmentCount*4</span> <span class="pre">=</span> <span class="pre">92</span></code> Quaternion vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">position, velocity, acceleration, angularVelocity, angularAcceleration:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">segmentCount*3</span> <span class="pre">=</span> <span class="pre">69</span></code> 3D vectors in <code class="docutils literal notranslate"><span class="pre">(x,y,z)</span></code> format</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">footContacts:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">4</span></code> 4D boolean vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">sensorFreeAcceleration, sensorMagneticField:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">sensorCount*3</span> <span class="pre">=</span> <span class="pre">51</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">sensorOrientation:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">sensorCount*4</span> <span class="pre">=</span> <span class="pre">68</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">jointAngle, jointAngleXZY:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><code class="docutils literal notranslate"><span class="pre">jointCount*3</span> <span class="pre">=</span> <span class="pre">66</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">jointAngleErgo:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">12</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">centerOfMass:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">3</span></code></td>
+</tr>
+</tbody>
+</table>
 <p>The units are SI for position, velocity and acceleration. Angular magnitudes
 are in radians except the <code class="docutils literal notranslate"><span class="pre">jointAngle...</span></code> ones that are in degrees. All 3D
 vectors are in <code class="docutils literal notranslate"><span class="pre">(x,y,z)</span></code> format, but the <code class="docutils literal notranslate"><span class="pre">jointAngle...</span></code> ones differ in
@@ -300,27 +345,35 @@ the Euler-rotation order by which they are computed (ZXY, standard or XZY,
 for shoulders usually).</p>
 <dl class="class">
 <dt id="audio_synch_tool.mvn.Mvn">
-<em class="property">class </em><code class="descclassname">audio_synch_tool.mvn.</code><code class="descname">Mvn</code><span class="sig-paren">(</span><em>mvn_path</em>, <em>schema_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">audio_synch_tool.mvn.</code><code class="descname">Mvn</code><span class="sig-paren">(</span><em>mvn_path</em>, <em>validate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class imports and adapts an XML file (expected to be in MVN format)
 to a Python-friendly representation. See this module’s docstring for usage
 examples and more information.</p>
+<dl class="attribute">
+<dt id="audio_synch_tool.mvn.Mvn.MVNX_SCHEMA_PATH">
+<code class="descname">MVNX_SCHEMA_PATH</code><em class="property"> = '/home/a9fb1e/github-work/audio-synch-tool/audio_synch_tool/data/mvn_schema_adapted.xsd'</em><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.MVNX_SCHEMA_PATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.export">
 <code class="descname">export</code><span class="sig-paren">(</span><em>filepath</em>, <em>pretty_print=True</em>, <em>extra_comment=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the current <code class="docutils literal notranslate"><span class="pre">mvn</span></code> attribute to the given file path as XML and
-adds the <code class="docutils literal notranslate"><span class="pre">self.mvn.comment.attrib[&quot;export_details&quot;]</span></code> attribute with
+adds the <code class="docutils literal notranslate"><span class="pre">self.mvn.attrib[&quot;pythonComment&quot;]</span></code> attribute with
 a timestamp.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.extract_frame_info">
 <code class="descname">extract_frame_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_frame_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_frame_info" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code></p>
-</dd>
-</dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -329,69 +382,83 @@ a timestamp.</p>
 <dd><p>The bulk of the MVN file is the <code class="docutils literal notranslate"><span class="pre">mvn-&gt;subject-&gt;frames</span></code> section.
 This function parses it and returns its information in a
 python-friendly format.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mvn</strong> – An XML tree, expected to be in MVN format</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mvn</strong> – An XML tree, expected to be in MVN format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple <code class="docutils literal notranslate"><span class="pre">(frames_metadata,</span> <span class="pre">config_frames,</span> <span class="pre">normal_frames)</span></code>
 where the metadata is a dict in the form <code class="docutils literal notranslate"><span class="pre">{'segmentCount':</span> <span class="pre">'23',</span>
 <span class="pre">'sensorCount':</span> <span class="pre">'17',</span> <span class="pre">'jointCount':</span> <span class="pre">'22'}</span></code>, the config frames are the
 first 3 frame entries (expected to contain special config info)
 and the normal_frames are all frames starting from the 4th. Both
 frame outputs are relational collections of dictionaries that can be
-formatted into tabular form.</p>
-</dd>
-</dl>
+formatted into tabular form.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="audio_synch_tool.mvn.Mvn.extract_normalframe_magnitudes">
 <em class="property">static </em><code class="descname">extract_normalframe_magnitudes</code><span class="sig-paren">(</span><em>normal_frames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_normalframe_magnitudes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_normalframe_magnitudes" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the magnitude names in each of the
-<code class="docutils literal notranslate"><span class="pre">self.normal_frames</span></code></p>
-</dd>
-</dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of the magnitude names in each of the
+<code class="docutils literal notranslate"><span class="pre">self.normal_frames</span></code></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.extract_normalframe_sequences">
 <code class="descname">extract_normalframe_sequences</code><span class="sig-paren">(</span><em>frames_metadata</em>, <em>normal_frames</em>, <em>device='cpu'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_normalframe_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a dict with torch tensors of shape
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dict with torch tensors of shape
 <code class="docutils literal notranslate"><span class="pre">(num_normalframes,</span> <span class="pre">num_channels)</span></code> where the number of channels is
-e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)…</p>
-</dd>
-</dl>
+e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)…</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.extract_segments">
 <code class="descname">extract_segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_segments" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the segment names in <code class="docutils literal notranslate"><span class="pre">self.mvn.subject.segments</span></code>,
-ordered by id (starting at 1 and incrementing +1).</p>
-</dd>
-</dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of the segment names in <code class="docutils literal notranslate"><span class="pre">self.mvn.subject.segments</span></code>,
+ordered by id (starting at 1 and incrementing +1).</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.get_audio_synch">
 <code class="descname">get_audio_synch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.get_audio_synch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.get_audio_synch" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list with the <code class="docutils literal notranslate"><span class="pre">audio_sample</span></code> attributes for the
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list with the <code class="docutils literal notranslate"><span class="pre">audio_sample</span></code> attributes for the
 normal frames, or None if there is at least 1 normal frame without
 the <code class="docutils literal notranslate"><span class="pre">audio_sample</span></code> attribute. Note that this function assumes that
 the entries are integers in the form ‘123’, so they are retrieved
 int(x). If that is not the case, they may be truncated or even throw
-an exception.</p>
-</dd>
-</dl>
+an exception.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -399,15 +466,9 @@ an exception.</p>
 <code class="descname">set_audio_synch</code><span class="sig-paren">(</span><em>stretch</em>, <em>shift</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.set_audio_synch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.set_audio_synch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the list of normal frames in this Mvn, each one with an “index”
 field, this function adds an <code class="docutils literal notranslate"><span class="pre">audio_sample</span></code> attribute to each frame,
-where <code class="docutils literal notranslate"><span class="pre">audio_sample</span> <span class="pre">=</span> <span class="pre">index</span> <span class="pre">*</span> <span class="pre">stretch</span> <span class="pre">+</span> <span class="pre">shift</span></code>.
+where <code class="docutils literal notranslate"><span class="pre">audio_sample</span> <span class="pre">=</span> <span class="pre">round(index</span> <span class="pre">*</span> <span class="pre">stretch</span> <span class="pre">+</span> <span class="pre">shift)</span></code>.
 See <code class="docutils literal notranslate"><span class="pre">utils.convert_anchors</span></code> for converting anchor points into stretch
 and shift.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="audio_synch_tool.mvn.Mvn.set_comment">
-<code class="descname">set_comment</code><span class="sig-paren">(</span><em>comment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.set_comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.set_comment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets a comment that can be found as a string under self.mvn.comment</p>
 </dd></dl>
 
 </dd></dl>
@@ -423,26 +484,28 @@ and shift.</p>
 <dl class="method">
 <dt id="audio_synch_tool.plotters.AudioMvnSynchToolChecker.make_fig">
 <code class="descname">make_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#AudioMvnSynchToolChecker.make_fig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.AudioMvnSynchToolChecker.make_fig" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>toolbar_widgets</strong> – A list of class names of type
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>toolbar_widgets</strong> – A list of class names of type
 SignalTransformButtons. Must include a <code class="docutils literal notranslate"><span class="pre">fig</span></code> attribute, which
-will be automatically set to be the Figure returned by this method.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A matplotlib Figure containing the array given at
+will be automatically set to be the Figure returned by this method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A matplotlib Figure containing the array given at
 construction. The interactive plot of the figure will react
 to the user’s zooming by showing approximately
-<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</p>
-</dd>
-</dl>
+<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="audio_synch_tool.plotters.AudioMvnSynchToolEditor">
-<em class="property">class </em><code class="descclassname">audio_synch_tool.plotters.</code><code class="descname">AudioMvnSynchToolEditor</code><span class="sig-paren">(</span><em>wav_path</em>, <em>mvnx_path</em>, <em>mvnx_schema_path=None</em>, <em>max_datapoints=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#AudioMvnSynchToolEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.AudioMvnSynchToolEditor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">audio_synch_tool.plotters.</code><code class="descname">AudioMvnSynchToolEditor</code><span class="sig-paren">(</span><em>wav_path</em>, <em>mvnx_path</em>, <em>validate_mvnx=False</em>, <em>max_datapoints=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#AudioMvnSynchToolEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.AudioMvnSynchToolEditor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D" title="audio_synch_tool.plotters.MultipleDownsampledPlotter1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">audio_synch_tool.plotters.MultipleDownsampledPlotter1D</span></code></a></p>
 <dl class="attribute">
 <dt id="audio_synch_tool.plotters.AudioMvnSynchToolEditor.TEXTBOX_WIDGET_CLASSES">
@@ -457,19 +520,21 @@ to the user’s zooming by showing approximately
 <dl class="method">
 <dt id="audio_synch_tool.plotters.AudioMvnSynchToolEditor.make_fig">
 <code class="descname">make_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#AudioMvnSynchToolEditor.make_fig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.AudioMvnSynchToolEditor.make_fig" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>toolbar_widgets</strong> – A list of class names of type
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>toolbar_widgets</strong> – A list of class names of type
 SignalTransformButtons. Must include a <code class="docutils literal notranslate"><span class="pre">fig</span></code> attribute, which
-will be automatically set to be the Figure returned by this method.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A matplotlib Figure containing the array given at
+will be automatically set to be the Figure returned by this method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A matplotlib Figure containing the array given at
 construction. The interactive plot of the figure will react
 to the user’s zooming by showing approximately
-<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</p>
-</dd>
-</dl>
+<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -484,8 +549,8 @@ downsampling mechanism that plots a (configurable) number of points
 at most. The downsampling mechanism is based on this code:</p>
 <p><a class="reference external" href="https://matplotlib.org/3.1.0/gallery/event_handling/resample.html">https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</a></p>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The downsampling mechanism only affects the display, not the data,
+<p class="first admonition-title">Note</p>
+<p class="last">The downsampling mechanism only affects the display, not the data,
 and is refreshed every time the user changes the perspective.
 If the user zooms close enough the data will be displayed in its
 original form. Therefore downsampling helps to provide a quicker
@@ -540,19 +605,21 @@ sample-precise inspection.</p>
 <dl class="method">
 <dt id="audio_synch_tool.plotters.MultipleDownsampledPlotter1D.make_fig">
 <code class="descname">make_fig</code><span class="sig-paren">(</span><em>textbox_widgets=[]</em>, <em>toolbar_widgets=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#MultipleDownsampledPlotter1D.make_fig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.MultipleDownsampledPlotter1D.make_fig" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>toolbar_widgets</strong> – A list of class names of type
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>toolbar_widgets</strong> – A list of class names of type
 SignalTransformButtons. Must include a <code class="docutils literal notranslate"><span class="pre">fig</span></code> attribute, which
-will be automatically set to be the Figure returned by this method.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A matplotlib Figure containing the array given at
+will be automatically set to be the Figure returned by this method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A matplotlib Figure containing the array given at
 construction. The interactive plot of the figure will react
 to the user’s zooming by showing approximately
-<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</p>
-</dd>
-</dl>
+<code class="docutils literal notranslate"><span class="pre">self.max_datapoints</span></code> number of samples.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -698,7 +765,7 @@ and save it to the given path.
 
 <dl class="attribute">
 <dt id="audio_synch_tool.plotters.SynchAndSaveMvnButton.image">
-<code class="descname">image</code><em class="property"> = '/home/andres_py3/git-work/audio-synch-tool/audio_synch_tool/data/synch_and_save.png'</em><a class="headerlink" href="#audio_synch_tool.plotters.SynchAndSaveMvnButton.image" title="Permalink to this definition">¶</a></dt>
+<code class="descname">image</code><em class="property"> = '/home/a9fb1e/github-work/audio-synch-tool/audio_synch_tool/data/synch_and_save.png'</em><a class="headerlink" href="#audio_synch_tool.plotters.SynchAndSaveMvnButton.image" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -724,7 +791,7 @@ and save it to the given path.
 
 <dl class="attribute">
 <dt id="audio_synch_tool.plotters.TextPromptOutPath.INITIAL_VAL">
-<code class="descname">INITIAL_VAL</code><em class="property"> = '/home/andres_py3'</em><a class="headerlink" href="#audio_synch_tool.plotters.TextPromptOutPath.INITIAL_VAL" title="Permalink to this definition">¶</a></dt>
+<code class="descname">INITIAL_VAL</code><em class="property"> = '/home/a9fb1e'</em><a class="headerlink" href="#audio_synch_tool.plotters.TextPromptOutPath.INITIAL_VAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -753,16 +820,20 @@ and save it to the given path.
 <dt id="audio_synch_tool.plotters.add_to_toolbar">
 <code class="descclassname">audio_synch_tool.plotters.</code><code class="descname">add_to_toolbar</code><span class="sig-paren">(</span><em>fig</em>, <em>*widgets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/plotters.html#add_to_toolbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.plotters.add_to_toolbar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a set of button-like widgets to the toolbar of a given figure.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fig</strong> – a <code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></p></li>
-<li><p><strong>widgets</strong> – A number of class names that extend
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fig</strong> – a <code class="docutils literal notranslate"><span class="pre">plt.Figure</span></code></li>
+<li><strong>widgets</strong> – A number of class names that extend
 <code class="docutils literal notranslate"><span class="pre">mpl.backend_tools.ToolBase</span></code>. They must have at least defind the
-<code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">tool_group</span></code> fields.</p></li>
+<code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">tool_group</span></code> fields.</li>
 </ul>
-</dd>
-</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -857,11 +928,14 @@ given <code class="docutils literal notranslate"><span class="pre">val</span></c
 <dl class="method">
 <dt id="audio_synch_tool.utils.Timedelta.as_tuple">
 <code class="descname">as_tuple</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#Timedelta.as_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.Timedelta.as_tuple" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the tuple of integers (days, hours, mins, secs, microsecs)</p>
-</dd>
-</dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the tuple of integers (days, hours, mins, secs, microsecs)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -931,14 +1005,16 @@ given anchors. This is given by solving the formula:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>``[dest1, dest2] = shift + stretch * [ori1, ori2]``
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ori1</strong> (<em>number</em>) – any real-valued number. Same for ori2, dest1, dest2.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a tuple (stretch, shift) with 2 real-valued numbers.</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ori1</strong> (<em>number</em>) – any real-valued number. Same for ori2, dest1, dest2.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple (stretch, shift) with 2 real-valued numbers.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -959,15 +1035,25 @@ E.g., the following call retrieves the absolute path for
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resolve_path</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;test.txt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Params strings path_elements</dt>
-<dd class="field-odd"><p>From left to right, the path nodes,
-the last one being the filename.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Params strings path_elements:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">From left to right, the path nodes,
+the last one being the filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="audio_synch_tool.utils.tensor_has_all_integers">
+<code class="descclassname">audio_synch_tool.utils.</code><code class="descname">tensor_has_all_integers</code><span class="sig-paren">(</span><em>tnsr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#tensor_has_all_integers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.tensor_has_all_integers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a PyTorch tensor (usually floats), returns True if all entries are
+integers, false otherwise</p>
 </dd></dl>
 
 </div>
@@ -984,10 +1070,8 @@ the last one being the filename.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="audio_synch_tool.data.html" class="btn btn-neutral float-right" title="audio_synch_tool.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to audio_synch_tool’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Welcome to audio_synch_tool’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1013,16 +1097,25 @@ the last one being the filename.</p>
   
 
 
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
