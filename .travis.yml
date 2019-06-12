@@ -19,7 +19,7 @@ env:
     - CHANGELOG_PATH="CHANGELOG.md" # relative to repo root
 
 # this line routes the builds to Ubuntu 16.04
-dist: trusty
+dist: xenial
 
 # implicitly creates a venv for python in the VM (so pip syntax is "global")
 language: python
