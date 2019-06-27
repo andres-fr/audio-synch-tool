@@ -85,7 +85,7 @@ def main():
                         required=True)
     parser.add_argument("-m", "--mvnx_path", help="absolute path",
                         type=str, required=True)
-    parser.add_argument("-v", "--validate_mvnx",
+    parser.add_argument("-V", "--validate_mvnx",
                         help="If given, the MVNX is validated to our schema",
                         action="store_true")
     parser.add_argument("-a", "--anchors",
@@ -135,22 +135,39 @@ def main():
     mocap.mvn.attrib["wav_file"] = wav_name
     print("Added mvn.mvn.attrib['wav_file'] =", wav_name)
 
-    # now trim and modify the mvnx:
+    # add the audio sample attr to every frame. Also remove all samples above
+    # the "end" range, and collect the samples before "beg" for later
     all_frames = mocap.mvn.subject.frames
+    left_trim_samples = []
+    right_trim_samples = []
     for f in all_frames.iterchildren():
         if f.attrib["type"] == "normal":
             # for each normal frame, read the index and "long" audio index
             a_idx = int(f.attrib["audio_sample"])
             # subtract the "beg" sample from every audio idx to get the "short"
             f.attrib["audio_sample"] = str(a_idx - beg)
-            # if the "long" index is out of the "short" bounds, remove it
-            if a_idx < beg or a_idx > end:
+            if a_idx <= beg:
+                left_trim_samples.append(f)
+            elif a_idx > end:
                 all_frames.remove(f)
+
+    # set the last left_trim_sample to 0 (so the audio begins with info) and
+    # remove the rest
+    max_left_trim = max([s.attrib["audio_sample"] for s in left_trim_samples])
+    for s in left_trim_samples:
+        saas = s.attrib["audio_sample"]
+        if saas == max_left_trim:
+            s.attrib["audio_sample"] = "0"  # set the latest non-pos to zero
+        else:
+            all_frames.remove(s)
 
     # export modified file:
     if OUT_PATH is None:
-        OUT_PATH = "_".join([MVNX_PATH, "anchors", str(ori1), str(dest1),
-                             str(ori2), str(dest2)])
+        oo1 = str(int(ori1) if ori1.is_integer() else ori1)
+        dd1 = str(int(dest1) if dest1.is_integer() else dest1)
+        oo2 = str(int(ori2) if ori2.is_integer() else ori2)
+        dd2 = str(int(dest2) if dest2.is_integer() else dest2)
+        OUT_PATH = MVNX_PATH + "_o1d1o2d2=" + "_".join([oo1, dd1, oo2, dd2])
     mocap.export(OUT_PATH, pretty_print=PRETTY_PRINT, extra_comment="")
 
 
