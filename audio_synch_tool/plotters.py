@@ -7,7 +7,7 @@
 
 # os+plt imports right after __future__
 import os
-import torch
+import numpy as np
 import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
 #     print('no display found. Using non-interactive Agg backend')
@@ -487,14 +487,15 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
         mvn_arrays = self._get_mvn_arrays()
         y_arrays = [[wav_arr]] + mvn_arrays
         # x-array for audio is trivial
-        x_audio = torch.arange(len(wav_arr)).type(torch.float64).numpy()
+        x_audio = np.arange(len(wav_arr)).astype(np.float64)
         # x-array for mvn: if no pre-synched entries use frame indexes.
         x_mvn = self.mvn.get_audio_synch()
         if x_mvn is None:
             x_mvn = [int(f.attrib["index"])
                      for f in self.mvn.mvn.subject.frames.getchildren()
                      if f.attrib["type"] == "normal"]
-        x_mvn = torch.Tensor(x_mvn).numpy()
+        # x_mvn = torch.Tensor(x_mvn).numpy()
+        x_mvn = np.float32(x_mvn)
 
         # bundle plotter inputs:
         x_arrays = [[x_audio]] + [[x_mvn for a in arrs] for arrs in mvn_arrays]
@@ -516,18 +517,20 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
         mocap_segments = self.mvn.extract_segments()
         frames_metadata, _, normal_frames = self.mvn.extract_frame_info()
         frame_sequences = self.mvn.extract_normalframe_sequences(
-            frames_metadata, normal_frames, "cpu")
+            frames_metadata, normal_frames)
         mocap_accelerations_3d = frame_sequences["acceleration"]
-        mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        # mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        mocap_accel_norm = np.linalg.norm(np.stack(mocap_accelerations_3d),
+                                          ord=2, axis=-1)
         #
         mvn_arrays = [[
-            mocap_accel_norm[:, mocap_segments.index("LeftShoulder")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+            mocap_accel_norm[:, mocap_segments.index("LeftShoulder")],
+            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")],
+            mocap_accel_norm[:, mocap_segments.index("LeftHand")]],
                       [
-            mocap_accel_norm[:, mocap_segments.index("RightShoulder")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+            mocap_accel_norm[:, mocap_segments.index("RightShoulder")],
+            mocap_accel_norm[:, mocap_segments.index("RightForeArm")],
+            mocap_accel_norm[:, mocap_segments.index("RightHand")]]]
         return mvn_arrays
 
     def make_fig(self):
@@ -555,11 +558,13 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         mvn_arrays = self._get_mvn_arrays()
         y_arrays = [[audio_array]] + mvn_arrays
         # x-array for audio is trivial
-        x_audio = torch.arange(len(audio_array)).type(torch.float64).numpy()
+        # x_audio = torch.arange(len(audio_array)).type(torch.float64).numpy()
+        x_audio = np.arange(len(audio_array)).astype(np.float64)
         # x-array for mvn: if no pre-synched entries use frame indexes.
         x_mvn = self.mvn.get_audio_synch()
         assert x_mvn is not None, "No synch info in mvn file?"
-        x_mvn = torch.Tensor(x_mvn).numpy()
+        # x_mvn = torch.Tensor(x_mvn).numpy()
+        x_mvn = np.float32(x_mvn)
 
         # bundle plotter inputs:
         x_arrays = [[x_audio]] + [[x_mvn for a in arrs] for arrs in mvn_arrays]
@@ -583,18 +588,21 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         mocap_segments = self.mvn.extract_segments()
         frames_metadata, _, normal_frames = self.mvn.extract_frame_info()
         frame_sequences = self.mvn.extract_normalframe_sequences(
-            frames_metadata, normal_frames, "cpu")
+            frames_metadata, normal_frames)
         mocap_accelerations_3d = frame_sequences["acceleration"]
-        mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        #mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        mocap_accel_norm = np.linalg.norm(np.stack(mocap_accelerations_3d),
+                                          ord=2, axis=-1)
+
         #
         mvn_arrays = [[
-            mocap_accel_norm[:, mocap_segments.index("LeftUpperArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("LeftHand")].numpy()],
+            mocap_accel_norm[:, mocap_segments.index("LeftUpperArm")],
+            mocap_accel_norm[:, mocap_segments.index("LeftForeArm")],
+            mocap_accel_norm[:, mocap_segments.index("LeftHand")]],
                       [
-            mocap_accel_norm[:, mocap_segments.index("RightUpperArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("RightForeArm")].numpy(),
-            mocap_accel_norm[:, mocap_segments.index("RightHand")].numpy()]]
+            mocap_accel_norm[:, mocap_segments.index("RightUpperArm")],
+            mocap_accel_norm[:, mocap_segments.index("RightForeArm")],
+            mocap_accel_norm[:, mocap_segments.index("RightHand")]]]
         return mvn_arrays
 
     def make_fig(self):

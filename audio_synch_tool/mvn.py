@@ -102,7 +102,7 @@ for shoulders usually).
 __author__ = "Andres FR"
 
 
-import torch
+import numpy as np
 from lxml import etree, objectify  # https://lxml.de/validation.html
 from .utils import make_timestamp, resolve_path
 
@@ -283,10 +283,9 @@ class Mvn(object):
                 "Inconsistent magnitudes in frame %d?" % i
         return result
 
-    def extract_normalframe_sequences(self, frames_metadata, normal_frames,
-                                      device="cpu"):
+    def extract_normalframe_sequences(self, frames_metadata, normal_frames):
         """
-        :returns: a dict with torch tensors of shape
+        :returns: a dict with np arrays of shape
           ``(num_normalframes, num_channels)`` where the number of channels is
           e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)...
         """
@@ -308,27 +307,32 @@ class Mvn(object):
                 # add as-is int scalars:
                 elif mag in {"time", "index", "ms", "footContacts",
                              "audio_sample"}:
-                    entry = torch.LongTensor([f[mag]])
+                    entry = np.int64([f[mag]])  # torch.LongTensor([f[mag]])
                 # add as-is float vectors:
                 elif mag in {"centerOfMass", "jointAngleErgo"}:
-                    entry = torch.Tensor([f[mag]])
+                    entry = np.float32([f[mag]])  # torch.LongTensor([f[mag]])
                 # add 3D magment vectors
                 elif mag in {"position", "velocity", "acceleration",
                              "angularVelocity", "angularAcceleration"}:
-                    entry = torch.Tensor(f[mag]).view(n_segments, 3)
+                    # entry = torch.Tensor(f[mag]).view(n_segments, 3)
+                    entry = np.float32(f[mag]).reshape(n_segments, 3)
                 # add 4D magment vectors
                 elif mag == "orientation":
-                    entry = torch.Tensor(f[mag]).view(n_segments, 4)
+                    # entry = torch.Tensor(f[mag]).view(n_segments, 4)
+                    entry = np.float32(f[mag]).reshape(n_segments, 4)
                 # add 3D sensor vectors
                 elif mag in {"sensorFreeAcceleration",
                              "sensorMagneticField"}:
-                    entry = torch.Tensor(f[mag]).view(n_sensors, 3)
+                    # entry = torch.Tensor(f[mag]).view(n_sensors, 3)
+                    entry = np.float32(f[mag]).reshape(n_sensors, 3)
                 # add 4D magment vectors
                 elif mag == "sensorOrientation":
-                    entry = torch.Tensor(f[mag]).view(n_sensors, 4)
+                    # entry = torch.Tensor(f[mag]).view(n_sensors, 4)
+                    entry = np.float32(f[mag]).reshape(n_sensors, 4)
                 # add 3D joint vectors:
                 elif mag in {"jointAngle", "jointAngleXZY"}:
-                    entry = torch.Tensor(f[mag]).view(n_joints, 3)
+                    # entry = torch.Tensor(f[mag]).view(n_joints, 3)
+                    entry = np.float32(f[mag]).reshape(n_joints, 3)
                 # this should never happen
                 else:
                     comp = mag + " should be in " + str(all_magnitudes)
@@ -338,7 +342,8 @@ class Mvn(object):
 
         for k, v in result.items():
             try:
-                result[k] = torch.stack(v).to(device)
+                # result[k] = torch.stack(v).to(device)
+                entry = np.stack(v)
             except TypeError:
                 # This will happen for the "string" entries, which cannot be
                 # converted to tensors. Just leave them unchanged

@@ -7,7 +7,7 @@
 import os
 import datetime
 import pytz
-import torch
+import numpy as np
 #
 from . import __path__ as PACKAGE_ROOT_PATH  # path of the __init__ file
 
@@ -128,12 +128,17 @@ class Timedelta(object):
 # ## ARITHMETIC
 # #############################################################################
 
-def tensor_has_all_integers(tnsr):
+# def tensor_has_all_integers(tnsr):
+#     """
+#     Given a PyTorch tensor (usually floats), returns True if all entries are
+#     integers, false otherwise
+#     """
+#     return bool(((tnsr % 1) == 0).all())
+
+def arr_has_all_integers(arr):
     """
-    Given a PyTorch tensor (usually floats), returns True if all entries are
-    integers, false otherwise
     """
-    return bool(((tnsr % 1) == 0).all())
+    return np.equal(np.mod(arr, 1), 0).all()
 
 
 def convert_anchors(ori1, dest1, ori2, dest2):
@@ -331,9 +336,12 @@ class DownsamplableFunction(object):
             assert len(x_arr.shape) == 1, "Only 1D arrays expected!"
             self._len_x = len(x_arr)
             assert self._len_x == self._len_y, "len(x) must equal len(y)!"
-            self.x = torch.Tensor(x_arr).sort()[0].numpy()
+            # self.x = torch.Tensor(x_arr).sort()[0].numpy()
+            self.x = np.float32(x_arr)
+            self.x.sort()
         else:
-            self.x = torch.arange(self._len_y).numpy()
+            # self.x = torch.arange(self._len_y).numpy()
+            self.x = np.arange(self._len_y).numpy()
             self._len_x = self._len_y
         self.max_datapoints = max_datapoints
 
