@@ -13,9 +13,9 @@ matplotlib
 lxml  # requires install libiconv?
 pysoundfile
 #
-torch
+# torch
 
 
 #
-jsonschema
-bson
+# jsonschema
+# bson

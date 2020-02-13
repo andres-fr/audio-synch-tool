@@ -296,9 +296,14 @@ class MultipleDownsampledPlotter1D(object):
         assert max_datapoints > 0, "positive max_datapoints expected!"
         # arrays is a "list of lists of arrays"
         for yarrs in y_arrays:
-            for yarr in yarrs:
-                assert len(yarr.shape) == 1, "1D y_array expected!"
-        # check x arrays
+            for i, yarr in enumerate(yarrs):
+                # App expects mono audio.
+                if len(yarr.shape) == 2:
+                    num_samples, num_chans = yarr.shape
+                    assert num_samples > num_chans, "this should never happen"
+                    print("[WARNING]: Audio was not mono. Averaging channels")
+                    yarrs[i] = yarr.mean(axis=1)
+          # check x arrays
         if x_arrays is not None:
             assert len(x_arrays) == self.N, \
                 "len(x_arrays) must be equal len(y_arrays)!"
@@ -475,7 +480,6 @@ class AudioMvnSynchToolEditor(MultipleDownsampledPlotter1D):
         """
         self.wav_path = wav_path
         self.mvnx_path = mvnx_path
-        #
         wav_arr, audio_samplerate = sf.read(wav_path)
         self.mvn = Mvn(mvnx_path, validate_mvnx)
         # get mvn samplerate and our desired y arrays
