@@ -13,7 +13,7 @@ directory.
 # torch has to be imported to prevent sphinx from crashing in projects
 # involving PyTorch and matplotlib:
 # https://github.com/pytorch/pytorch/issues/11326
-import torch  # noqa: F401
+# import torch  # noqa: F401
 import os
 import shutil  # to remove folder recursively
 import argparse
