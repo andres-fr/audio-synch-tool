@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool package &mdash; audio_synch_tool 1.3.0 documentation</title>
+  <title>audio_synch_tool package &mdash; audio_synch_tool 2.0.0 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                1.3.0
+                2.0.0
               </div>
             
           
@@ -85,7 +85,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">audio_synch_tool package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.mmc">audio_synch_tool.mmc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.mvn">audio_synch_tool.mvn module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.plotters">audio_synch_tool.plotters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-audio_synch_tool.utils">audio_synch_tool.utils module</a></li>
@@ -160,70 +159,6 @@
 <h1>audio_synch_tool package<a class="headerlink" href="#audio-synch-tool-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-audio_synch_tool.mmc">
-<span id="audio-synch-tool-mmc-module"></span><h2>audio_synch_tool.mmc module<a class="headerlink" href="#module-audio_synch_tool.mmc" title="Permalink to this headline">¶</a></h2>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Since BSON can be bigger than JSON (see <a class="reference external" href="https://stackoverflow.com/a/24116464">https://stackoverflow.com/a/24116464</a>)
-this module is abandoned until a better solution comes up.</p>
-</div>
-<p>The goal of this module is to provide an interface between MVNX and MMC, both
-in JSON and BSON format.</p>
-<ol class="arabic simple">
-<li>Have a proper definition of MMC</li>
-<li>load MVNX into an XML tree</li>
-<li>convert logical data into MMC</li>
-<li>export/import MMC both as JSON and BSON</li>
-<li>convert logical data back into XML tree</li>
-</ol>
-<dl class="class">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder">
-<em class="property">class </em><code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">ObjectifiedMvnToJsonEncoder</code><span class="sig-paren">(</span><em>*</em>, <em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
-<p>This encoder handles the conversion from an MVNX object that follows our
-modified schema and has been imported via <code class="docutils literal notranslate"><span class="pre">lxml.objectify</span></code>, into a
-JSON object. It can be passed to <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code> to create a JSON string
-that can be then exported as plain text or BSON.</p>
-<dl class="attribute">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.ALL_ARRAYS_AS_FLOAT">
-<code class="descname">ALL_ARRAYS_AS_FLOAT</code><em class="property"> = True</em><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.ALL_ARRAYS_AS_FLOAT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.EXPECTED_TYPES">
-<code class="descname">EXPECTED_TYPES</code><em class="property"> = [&lt;class 'lxml.etree._Attrib'&gt;, &lt;class 'lxml.objectify.StringElement'&gt;, &lt;class 'lxml.objectify.ObjectifiedElement'&gt;]</em><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.EXPECTED_TYPES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.default">
-<code class="descname">default</code><span class="sig-paren">(</span><em>o</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.default" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function doesn’t need to be recursive, that is handled
-by the encoder itself.</p>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_attrib">
-<em class="property">classmethod </em><code class="descname">process_attrib</code><span class="sig-paren">(</span><em>atts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.process_attrib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_attrib" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="classmethod">
-<dt id="audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_string">
-<em class="property">classmethod </em><code class="descname">process_string</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#ObjectifiedMvnToJsonEncoder.process_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.ObjectifiedMvnToJsonEncoder.process_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="audio_synch_tool.mmc.mvn_to_json">
-<code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">mvn_to_json</code><span class="sig-paren">(</span><em>mvn_in_path</em>, <em>json_out_path</em>, <em>validate_mvn=False</em>, <em>write_as_binary=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#mvn_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.mvn_to_json" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="audio_synch_tool.mmc.test">
-<code class="descclassname">audio_synch_tool.mmc.</code><code class="descname">test</code><span class="sig-paren">(</span><em>mvn_path</em>, <em>mvn_schema_path</em>, <em>out_path='/tmp/test.json'</em>, <em>as_bson=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mmc.html#test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mmc.test" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-audio_synch_tool.mvn">
 <span id="audio-synch-tool-mvn-module"></span><h2>audio_synch_tool.mvn module<a class="headerlink" href="#module-audio_synch_tool.mvn" title="Permalink to this headline">¶</a></h2>
@@ -416,12 +351,12 @@ formatted into tabular form.</td>
 
 <dl class="method">
 <dt id="audio_synch_tool.mvn.Mvn.extract_normalframe_sequences">
-<code class="descname">extract_normalframe_sequences</code><span class="sig-paren">(</span><em>frames_metadata</em>, <em>normal_frames</em>, <em>device='cpu'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_normalframe_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences" title="Permalink to this definition">¶</a></dt>
+<code class="descname">extract_normalframe_sequences</code><span class="sig-paren">(</span><em>frames_metadata</em>, <em>normal_frames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/mvn.html#Mvn.extract_normalframe_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dict with torch tensors of shape
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dict with np arrays of shape
 <code class="docutils literal notranslate"><span class="pre">(num_normalframes,</span> <span class="pre">num_channels)</span></code> where the number of channels is
 e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)…</td>
 </tr>
@@ -994,6 +929,11 @@ this:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="audio_synch_tool.utils.arr_has_all_integers">
+<code class="descclassname">audio_synch_tool.utils.</code><code class="descname">arr_has_all_integers</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#arr_has_all_integers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.arr_has_all_integers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="audio_synch_tool.utils.convert_anchors">
 <code class="descclassname">audio_synch_tool.utils.</code><code class="descname">convert_anchors</code><span class="sig-paren">(</span><em>ori1</em>, <em>dest1</em>, <em>ori2</em>, <em>dest2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#convert_anchors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.convert_anchors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a signal that we want to shift and stretch on the x axis, this affine
@@ -1049,13 +989,6 @@ the last one being the filename.</td>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="audio_synch_tool.utils.tensor_has_all_integers">
-<code class="descclassname">audio_synch_tool.utils.</code><code class="descname">tensor_has_all_integers</code><span class="sig-paren">(</span><em>tnsr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/audio_synch_tool/utils.html#tensor_has_all_integers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audio_synch_tool.utils.tensor_has_all_integers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a PyTorch tensor (usually floats), returns True if all entries are
-integers, false otherwise</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-audio_synch_tool">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-audio_synch_tool" title="Permalink to this headline">¶</a></h2>
@@ -1080,7 +1013,7 @@ integers, false otherwise</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Andres FR
+        &copy; Copyright 2020, aferro
 
     </p>
   </div>

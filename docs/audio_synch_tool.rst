@@ -4,14 +4,6 @@ audio\_synch\_tool package
 Submodules
 ----------
 
-audio\_synch\_tool.mmc module
------------------------------
-
-.. automodule:: audio_synch_tool.mmc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 audio\_synch\_tool.mvn module
 -----------------------------
 

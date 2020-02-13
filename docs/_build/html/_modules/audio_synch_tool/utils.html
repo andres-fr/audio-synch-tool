@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.utils &mdash; audio_synch_tool 1.3.0 documentation</title>
+  <title>audio_synch_tool.utils &mdash; audio_synch_tool 2.0.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                1.3.0
+                2.0.0
               </div>
             
           
@@ -155,9 +155,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">pytz</span>
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="c1">#</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">__path__</span> <span class="k">as</span> <span class="n">PACKAGE_ROOT_PATH</span>  <span class="c1"># path of the __init__ file</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__path__</span> <span class="k">as</span> <span class="n">PACKAGE_ROOT_PATH</span>  <span class="c1"># path of the __init__ file</span>
 
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
@@ -198,7 +198,7 @@
 <div class="viewcode-block" id="Timedelta"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.Timedelta">[docs]</a><span class="k">class</span> <span class="nc">Timedelta</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_nr</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_nr</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param number sample_nr: Current sample number</span>
 <span class="sd">        :param number samplerate: No. of samples per second (must be positive)</span>
@@ -265,7 +265,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">days</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hours</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">secs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">microsecs</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a string in the form &quot;{X days} h:m:s.microseconds&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -276,12 +276,17 @@
 <span class="c1"># ## ARITHMETIC</span>
 <span class="c1"># #############################################################################</span>
 
-<div class="viewcode-block" id="tensor_has_all_integers"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.tensor_has_all_integers">[docs]</a><span class="k">def</span> <span class="nf">tensor_has_all_integers</span><span class="p">(</span><span class="n">tnsr</span><span class="p">):</span>
+<span class="c1"># def tensor_has_all_integers(tnsr):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Given a PyTorch tensor (usually floats), returns True if all entries are</span>
+<span class="c1">#     integers, false otherwise</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     return bool(((tnsr % 1) == 0).all())</span>
+
+<div class="viewcode-block" id="arr_has_all_integers"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.arr_has_all_integers">[docs]</a><span class="k">def</span> <span class="nf">arr_has_all_integers</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a PyTorch tensor (usually floats), returns True if all entries are</span>
-<span class="sd">    integers, false otherwise</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">bool</span><span class="p">(((</span><span class="n">tnsr</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="convert_anchors"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.convert_anchors">[docs]</a><span class="k">def</span> <span class="nf">convert_anchors</span><span class="p">(</span><span class="n">ori1</span><span class="p">,</span> <span class="n">dest1</span><span class="p">,</span> <span class="n">ori2</span><span class="p">,</span> <span class="n">dest2</span><span class="p">):</span>
@@ -318,7 +323,7 @@
 <span class="sd">    behave ALWAYS like this and avoid some other smart conversions like</span>
 <span class="sd">    scientific notation for big numbers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param number val: the axis value where the tick goes</span>
 <span class="sd">        :param int pos: from 0 (left margin) to num_ticks+2 (right</span>
@@ -338,7 +343,7 @@
 <span class="sd">    (otherwise just val). For that, it expects that the frame has defined the</span>
 <span class="sd">    ``audio_sample`` attribute.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvn</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvn</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param int num_decimals: number of decimals to show for each number</span>
 <span class="sd">        :param Mvn mvn: expected to be the Mvn instance used in the plot.</span>
@@ -351,7 +356,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;audio_sample&quot;</span><span class="p">]):</span> <span class="n">i</span>
                         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">normal_frames</span><span class="p">)}</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param number val: the axis value where the tick goes</span>
 <span class="sd">        :param int pos: from 0 (left margin) to num_ticks+2 (right</span>
@@ -379,7 +384,7 @@
 <span class="sd">    resampled.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param int num_decimals: number of decimals to show for each number</span>
 <span class="sd">        :param number ratio: A number so that val2 = val * ratio</span>
@@ -388,7 +393,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">float_form</span> <span class="o">=</span> <span class="s2">&quot;{:.</span><span class="si">%d</span><span class="s2">f}&quot;</span> <span class="o">%</span> <span class="n">num_decimals</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param number val: the axis value where the tick goes</span>
 <span class="sd">        :param int pos: from 0 (left margin) to num_ticks+2 (right</span>
@@ -416,7 +421,7 @@
 <span class="sd">      ax.xaxis.set_major_formatter(plt.FuncFormatter(</span>
 <span class="sd">                                   SampleToTimestampFormatter(sr)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">show_idx</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samplerate</span><span class="p">,</span> <span class="n">num_decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">show_idx</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param int num_decimals: An integer between 0 and 6.</span>
 <span class="sd">        :param bool show_idx: If true, the sample index will be also shown.</span>
@@ -428,7 +433,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">show_idx</span> <span class="o">=</span> <span class="n">show_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">samplerate</span> <span class="o">=</span> <span class="n">samplerate</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param number val: the axis value where the tick goes</span>
 <span class="sd">        :param int pos: from 0 (left margin) to num_ticks+2 (right</span>
@@ -451,7 +456,7 @@
 <span class="sd">    Encapsulates the downsampling functionality to prevent side effects,</span>
 <span class="sd">    and reduce code verbosity in plotter.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_arr</span><span class="p">,</span> <span class="n">max_datapoints</span><span class="p">,</span> <span class="n">x_arr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_arr</span><span class="p">,</span> <span class="n">max_datapoints</span><span class="p">,</span> <span class="n">x_arr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given an array representing a function, the original x and y values can</span>
 <span class="sd">        be accessed via ``self.x, self.y``, and the downsampled values via</span>
@@ -479,13 +484,16 @@
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Only 1D arrays expected!&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_len_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len_x</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len_y</span><span class="p">,</span> <span class="s2">&quot;len(x) must equal len(y)!&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="c1"># self.x = torch.Tensor(x_arr).sort()[0].numpy()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_len_y</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="c1"># self.x = torch.arange(self._len_y).numpy()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_len_y</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_len_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len_y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_datapoints</span> <span class="o">=</span> <span class="n">max_datapoints</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_len_y</span>
 
 <div class="viewcode-block" id="DownsamplableFunction.downsampled"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.utils.DownsamplableFunction.downsampled">[docs]</a>    <span class="k">def</span> <span class="nf">downsampled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xstart</span><span class="p">,</span> <span class="n">xend</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -519,7 +527,7 @@
 <span class="sd">                       DownsamplingCallbackFunctor(ax, [line1..], [arr1...]))``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">arrays</span><span class="p">,</span> <span class="n">shared_axes</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">arrays</span><span class="p">,</span> <span class="n">shared_axes</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">axis</span>
@@ -540,7 +548,7 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">viewLim</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">xmin</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">viewLim</span><span class="o">.</span><span class="n">x1</span> <span class="o">=</span> <span class="n">xmax</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        See also::</span>
 <span class="sd">        https://matplotlib.org/3.1.0/gallery/event_handling/resample.html</span>
@@ -558,12 +566,12 @@
 <span class="sd">    If multiple axes share the x-limits, calling the functor from one of</span>
 <span class="sd">    them triggers a call for every one of them.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functors</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functors</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">functors</span> <span class="o">=</span> <span class="n">functors</span>
 
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax_limits</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">functors</span><span class="p">:</span>
             <span class="n">f</span><span class="p">(</span><span class="n">ax_limits</span><span class="p">)</span></div>
 </pre></div>
@@ -578,7 +586,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Andres FR
+        &copy; Copyright 2020, aferro
 
     </p>
   </div>

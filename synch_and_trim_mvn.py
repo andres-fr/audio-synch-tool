@@ -139,7 +139,7 @@ def main():
     # the "end" range, and collect the samples before "beg" for later
     all_frames = mocap.mvn.subject.frames
     left_trim_samples = []
-    right_trim_samples = []
+    # right_trim_samples = []
     for f in all_frames.iterchildren():
         if f.attrib["type"] == "normal":
             # for each normal frame, read the index and "long" audio index

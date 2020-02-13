@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>audio_synch_tool.mvn &mdash; audio_synch_tool 1.3.0 documentation</title>
+  <title>audio_synch_tool.mvn &mdash; audio_synch_tool 2.0.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                1.3.0
+                2.0.0
               </div>
             
           
@@ -250,9 +250,9 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Andres FR&quot;</span>
 
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">lxml</span> <span class="k">import</span> <span class="n">etree</span><span class="p">,</span> <span class="n">objectify</span>  <span class="c1"># https://lxml.de/validation.html</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">make_timestamp</span><span class="p">,</span> <span class="n">resolve_path</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span><span class="p">,</span> <span class="n">objectify</span>  <span class="c1"># https://lxml.de/validation.html</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">make_timestamp</span><span class="p">,</span> <span class="n">resolve_path</span>
 
 
 <span class="c1"># #############################################################################</span>
@@ -278,7 +278,7 @@
 
     <span class="n">MVNX_SCHEMA_PATH</span> <span class="o">=</span> <span class="n">resolve_path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;mvn_schema_adapted.xsd&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvn_path</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mvn_path</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str mvn_path: a valid path pointing to the XML file to load</span>
 <span class="sd">        :param str validate: (optional): if true, the loaded XML will be</span>
@@ -431,10 +431,9 @@
                 <span class="s2">&quot;Inconsistent magnitudes in frame </span><span class="si">%d</span><span class="s2">?&quot;</span> <span class="o">%</span> <span class="n">i</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
-<div class="viewcode-block" id="Mvn.extract_normalframe_sequences"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">extract_normalframe_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">normal_frames</span><span class="p">,</span>
-                                      <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Mvn.extract_normalframe_sequences"><a class="viewcode-back" href="../../audio_synch_tool.html#audio_synch_tool.mvn.Mvn.extract_normalframe_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">extract_normalframe_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames_metadata</span><span class="p">,</span> <span class="n">normal_frames</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :returns: a dict with torch tensors of shape</span>
+<span class="sd">        :returns: a dict with np arrays of shape</span>
 <span class="sd">          ``(num_normalframes, num_channels)`` where the number of channels is</span>
 <span class="sd">          e.g. 1 for scalar magnitudes, 3 for 3D vectors (in xyz format)...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -456,27 +455,32 @@
                 <span class="c1"># add as-is int scalars:</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;footContacts&quot;</span><span class="p">,</span>
                              <span class="s2">&quot;audio_sample&quot;</span><span class="p">}:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]])</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]])</span>  <span class="c1"># torch.LongTensor([f[mag]])</span>
                 <span class="c1"># add as-is float vectors:</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;centerOfMass&quot;</span><span class="p">,</span> <span class="s2">&quot;jointAngleErgo&quot;</span><span class="p">}:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]])</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">]])</span>  <span class="c1"># torch.LongTensor([f[mag]])</span>
                 <span class="c1"># add 3D magment vectors</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;velocity&quot;</span><span class="p">,</span> <span class="s2">&quot;acceleration&quot;</span><span class="p">,</span>
                              <span class="s2">&quot;angularVelocity&quot;</span><span class="p">,</span> <span class="s2">&quot;angularAcceleration&quot;</span><span class="p">}:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                    <span class="c1"># entry = torch.Tensor(f[mag]).view(n_segments, 3)</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
                 <span class="c1"># add 4D magment vectors</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="o">==</span> <span class="s2">&quot;orientation&quot;</span><span class="p">:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                    <span class="c1"># entry = torch.Tensor(f[mag]).view(n_segments, 4)</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
                 <span class="c1"># add 3D sensor vectors</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;sensorFreeAcceleration&quot;</span><span class="p">,</span>
                              <span class="s2">&quot;sensorMagneticField&quot;</span><span class="p">}:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n_sensors</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                    <span class="c1"># entry = torch.Tensor(f[mag]).view(n_sensors, 3)</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_sensors</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
                 <span class="c1"># add 4D magment vectors</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="o">==</span> <span class="s2">&quot;sensorOrientation&quot;</span><span class="p">:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n_sensors</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                    <span class="c1"># entry = torch.Tensor(f[mag]).view(n_sensors, 4)</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_sensors</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
                 <span class="c1"># add 3D joint vectors:</span>
                 <span class="k">elif</span> <span class="n">mag</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;jointAngle&quot;</span><span class="p">,</span> <span class="s2">&quot;jointAngleXZY&quot;</span><span class="p">}:</span>
-                    <span class="n">entry</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">n_joints</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                    <span class="c1"># entry = torch.Tensor(f[mag]).view(n_joints, 3)</span>
+                    <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">mag</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_joints</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
                 <span class="c1"># this should never happen</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">comp</span> <span class="o">=</span> <span class="n">mag</span> <span class="o">+</span> <span class="s2">&quot; should be in &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">all_magnitudes</span><span class="p">)</span>
@@ -486,7 +490,8 @@
 
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                <span class="c1"># result[k] = torch.stack(v).to(device)</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="c1"># This will happen for the &quot;string&quot; entries, which cannot be</span>
                 <span class="c1"># converted to tensors. Just leave them unchanged</span>
@@ -504,7 +509,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Andres FR
+        &copy; Copyright 2020, aferro
 
     </p>
   </div>

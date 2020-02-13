@@ -303,7 +303,7 @@ class MultipleDownsampledPlotter1D(object):
                     assert num_samples > num_chans, "this should never happen"
                     print("[WARNING]: Audio was not mono. Averaging channels")
                     yarrs[i] = yarr.mean(axis=1)
-          # check x arrays
+        # check x arrays
         if x_arrays is not None:
             assert len(x_arrays) == self.N, \
                 "len(x_arrays) must be equal len(y_arrays)!"
@@ -590,7 +590,7 @@ class AudioMvnSynchToolChecker(MultipleDownsampledPlotter1D):
         frame_sequences = self.mvn.extract_normalframe_sequences(
             frames_metadata, normal_frames)
         mocap_accelerations_3d = frame_sequences["acceleration"]
-        #mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
+        # mocap_accel_norm = torch.norm(mocap_accelerations_3d, 2, dim=-1)
         mocap_accel_norm = np.linalg.norm(np.stack(mocap_accelerations_3d),
                                           ord=2, axis=-1)
 

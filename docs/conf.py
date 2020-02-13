@@ -30,8 +30,8 @@ html_theme = "sphinx_rtd_theme"
 # -- Project information -----------------------------------------------------
 
 project = 'audio_synch_tool'
-copyright = '2019, Andres FR'
-author = 'Andres FR'
+copyright = '2020, aferro'
+author = 'aferro'
 
 # The short X.Y version
 version = '2.0.0'
@@ -142,7 +142,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'audio_synch_tool.tex', 'audio\\_synch\\_tool Documentation',
-     'Andres FR', 'manual'),
+     'aferro', 'manual'),
 ]
 
 
